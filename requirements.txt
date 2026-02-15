@@ -1,0 +1,6 @@
+# Python requirements for this project
+requests
+pandas
+python-dotenv
+numpy
+supabase

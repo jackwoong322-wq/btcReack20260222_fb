@@ -1,0 +1,40 @@
+# VSCode
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+.venv
+venv/
+ENV/
+
+# Node
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+
+# Build
+build/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 기타
+*.log
+*.sqlite3
+*.db
+
+# Supabase
+.supabase/
+
+# 기타 임시/백업 파일
+*.bak
+*.tmp
+~$*

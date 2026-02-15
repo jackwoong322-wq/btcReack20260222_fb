@@ -1,0 +1,411 @@
+/* ==================== 공통 변수 ==================== */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #0d0d1a;
+  --bg-tertiary: #1a1a2e;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --border-hover: rgba(255, 255, 255, 0.1);
+  
+  /* 차트 색상 */
+  --color-blue: #3B82F6;
+  --color-green: #10B981;
+  --color-red: #EF4444;
+  --color-orange: #F59E0B;
+  --color-purple: #8B5CF6;
+  --color-pink: #EC4899;
+  --color-cyan: #06B6D4;
+  --color-lime: #84CC16;
+}
+
+/* ==================== 풀스크린 레이아웃 ==================== */
+.chart-page {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-primary);
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  padding: 48px 12px 8px 12px; /* 상단 헤더 공간 확보 */
+}
+
+/* ==================== 헤더 (컴팩트) ==================== */
+.chart-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.chart-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ==================== 툴바 ==================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-hover);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+}
+
+.toolbar-btn.active {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  color: var(--color-blue);
+}
+
+.toolbar-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-hover);
+  margin: 0 4px;
+}
+
+/* ==================== 스탯 카드 ==================== */
+.stats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.stat-card.inactive {
+  opacity: 0.3;
+}
+
+.stat-card.blue { border-left: 2px solid var(--color-blue); }
+.stat-card.green { border-left: 2px solid var(--color-green); }
+.stat-card.red { border-left: 2px solid var(--color-red); }
+.stat-card.orange { border-left: 2px solid var(--color-orange); }
+.stat-card.purple { border-left: 2px solid var(--color-purple); }
+.stat-card.pink { border-left: 2px solid var(--color-pink); }
+.stat-card.cyan { border-left: 2px solid var(--color-cyan); }
+.stat-card.lime { border-left: 2px solid var(--color-lime); }
+
+.stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.stat-label.blue { color: var(--color-blue); }
+.stat-label.green { color: var(--color-green); }
+.stat-label.red { color: var(--color-red); }
+.stat-label.orange { color: var(--color-orange); }
+.stat-label.purple { color: var(--color-purple); }
+.stat-label.pink { color: var(--color-pink); }
+.stat-label.cyan { color: var(--color-cyan); }
+.stat-label.lime { color: var(--color-lime); }
+
+.stat-value {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* ==================== 축 컨트롤 ==================== */
+.axis-controls {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 60px;
+  opacity: 1;
+}
+
+.axis-controls.hidden {
+  max-height: 0;
+  padding: 0 16px;
+  margin-bottom: 0;
+  opacity: 0;
+  border-color: transparent;
+}
+
+.axis-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.axis-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.axis-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.axis-input {
+  width: 70px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-hover);
+  border-radius: 4px;
+  color: #E2E8F0;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+
+.axis-input:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.axis-separator {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.apply-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--color-blue) 0%, #2563EB 100%);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.reset-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-hover);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reset-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+}
+
+/* ==================== 차트 영역 (풀스크린) ==================== */
+.chart-area {
+  flex: 1;
+  margin: 0;
+  min-height: 0;
+}
+
+/* ==================== 푸터 (최소화) ==================== */
+.chart-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* ==================== 로딩 / 에러 ==================== */
+.loading-container,
+.error-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.error-container {
+  color: var(--color-red);
+}
+
+/* ==================== 모바일 대응 ==================== */
+@media (max-width: 768px) {
+  .chart-wrapper {
+    padding: 48px 8px 4px 8px;
+  }
+  
+  .chart-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .chart-title {
+    font-size: 12px;
+  }
+  
+  .chart-subtitle {
+    font-size: 9px;
+  }
+  
+  .stats {
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  
+  .stat-card {
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+  
+  .stat-label,
+  .stat-value {
+    font-size: 7px;
+  }
+  
+  .toolbar {
+    display: none; /* 모바일에서 툴바 숨김 - 설정 패널 사용 */
+  }
+  
+  .axis-controls {
+    display: none; /* 모바일에서 숨김 - 설정 패널 사용 */
+  }
+  
+  .chart-footer {
+    font-size: 8px;
+    padding: 2px 0;
+  }
+}
+
+/* 가로 모드 (모바일/태블릿) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .chart-wrapper {
+    padding: 40px 8px 2px 8px;
+  }
+  
+  .chart-header {
+    margin-bottom: 2px;
+  }
+  
+  .chart-title {
+    font-size: 11px;
+  }
+  
+  .stats {
+    gap: 2px;
+  }
+  
+  .stat-card {
+    padding: 1px 4px;
+  }
+  
+  .stat-label,
+  .stat-value {
+    font-size: 6px;
+  }
+  
+  .chart-footer {
+    display: none; /* 가로 모드에서 푸터 숨김 */
+  }
+}
+
+/* 터치 디바이스 */
+@media (pointer: coarse) {
+  .toolbar-btn {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .stat-card {
+    padding: 4px 8px;
+  }
+}
