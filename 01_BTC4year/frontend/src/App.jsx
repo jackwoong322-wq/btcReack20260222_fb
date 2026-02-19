@@ -6,7 +6,7 @@ import BullBoxChart from './components/BullBoxChart'
 import TradingChart from './components/TradingChart'
 
 function App() {
-  const [selectedChart, setSelectedChart] = useState('trading')
+  const [selectedChart, setSelectedChart] = useState('comparison')
   const [menuOpen, setMenuOpen] = useState(false)
   const [expandedSection, setExpandedSection] = useState('bear')
 
