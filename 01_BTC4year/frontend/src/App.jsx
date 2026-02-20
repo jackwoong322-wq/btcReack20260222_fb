@@ -9,6 +9,7 @@ function App() {
   const [selectedChart, setSelectedChart] = useState('comparison')
   const [menuOpen, setMenuOpen] = useState(false)
   const [expandedSection, setExpandedSection] = useState('bear')
+  const [headerContent, setHeaderContent] = useState(null)
 
   const menuData = {
     comparison: { 
@@ -65,6 +66,7 @@ function App() {
   const handleMenuClick = (chartId) => {
     setSelectedChart(chartId)
     setMenuOpen(false)
+    if (chartId !== 'comparison') setHeaderContent(null)
   }
 
   const toggleSection = (section) => {
@@ -75,7 +77,7 @@ function App() {
     const info = getSelectedChartInfo()
     switch (info.type) {
       case 'comparison':
-        return <CycleComparisonChart />
+        return <CycleComparisonChart onHeaderContent={setHeaderContent} />
       case 'trading':
         return <TradingChart />
       case 'bear':
@@ -83,7 +85,7 @@ function App() {
       case 'bull':
         return <BullBoxChart cycleNumber={info.cycleNumber} />
       default:
-        return <CycleComparisonChart />
+        return <CycleComparisonChart onHeaderContent={setHeaderContent} />
     }
   }
 
@@ -94,9 +96,15 @@ function App() {
           className="header-btn menu-btn"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="메뉴"
+          style={{ pointerEvents: 'auto', flexShrink: 0 }}
         >
           ☰
         </button>
+        {headerContent && (
+          <div className="header-slot">
+            {headerContent}
+          </div>
+        )}
       </header>
 
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>

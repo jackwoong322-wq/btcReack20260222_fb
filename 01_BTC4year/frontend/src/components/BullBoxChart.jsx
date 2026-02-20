@@ -149,7 +149,7 @@ export default function BullBoxChart({ cycleNumber = 3 }) {
                 🐂 Cycle {cycleNumber} ({cycleInfo.startDate}~{cycleInfo.endDate}) — Bull Market Box
               </h2>
               <p style={{ color: '#848E9C', margin: '4px 0 0', fontSize: '12px' }}>
-                Drop ≥{config.DROP_THRESHOLD}% | Break &gt;{config.BREAK_THRESHOLD}% | 420+ Days
+                Drop ≥{config.DROP_THRESHOLD}% | Break &gt;{config.BREAK_THRESHOLD}% | 400~1450 Days
               </p>
             </div>
           </div>

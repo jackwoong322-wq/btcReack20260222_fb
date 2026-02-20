@@ -1,0 +1,160 @@
+{
+  "cycle4Real": [
+    {
+      "id": 1,
+      "startDay": 4,
+      "startRate": 81.82,
+      "peakDay": 21,
+      "peakRate": 93.38,
+      "endDay": 29,
+      "dur": 25
+    },
+    {
+      "id": 2,
+      "startDay": 30,
+      "startRate": 79.39,
+      "peakDay": 36,
+      "peakRate": 86.24,
+      "endDay": 39,
+      "dur": 9
+    },
+    {
+      "id": 3,
+      "startDay": 46,
+      "startRate": 64.66,
+      "peakDay": 100,
+      "peakRate": 78.55,
+      "endDay": 117,
+      "dur": 71
+    },
+    {
+      "id": 4,
+      "startDay": 123,
+      "startRate": 48.13,
+      "peakDay": 125,
+      "peakRate": 57.98,
+      "endDay": 136,
+      "dur": 13
+    }
+  ],
+  "predictions": [
+    {
+      "boxNum": 5,
+      "startDay": 137,
+      "endDay": 163,
+      "peakDay": 150,
+      "startRate": 34.4,
+      "peakRate": 40.71,
+      "dur": 26,
+      "predDrop": "40.7",
+      "predRise": "18.3"
+    },
+    {
+      "boxNum": 6,
+      "startDay": 164,
+      "endDay": 412,
+      "peakDay": 288,
+      "startRate": 22.67,
+      "peakRate": 38.45,
+      "dur": 248,
+      "predDrop": "44.3",
+      "predRise": "69.6"
+    },
+    {
+      "boxNum": 7,
+      "startDay": 413,
+      "endDay": 489,
+      "peakDay": 451,
+      "startRate": 9.24,
+      "peakRate": 12.2,
+      "dur": 76,
+      "predDrop": "76.0",
+      "predRise": "32.0"
+    },
+    {
+      "boxNum": 8,
+      "startDay": 490,
+      "endDay": 827,
+      "peakDay": 659,
+      "startRate": 2.72,
+      "peakRate": 4.48,
+      "dur": 337,
+      "predDrop": "77.7",
+      "predRise": "64.6"
+    }
+  ],
+  "cycle3": [
+    {
+      "id": 1,
+      "startDay": 4,
+      "startRate": 92.23,
+      "peakDay": 7,
+      "peakRate": 98.34,
+      "endDay": 8,
+      "dur": 4
+    },
+    {
+      "id": 2,
+      "startDay": 11,
+      "startRate": 82.34,
+      "peakDay": 13,
+      "peakRate": 88.9,
+      "endDay": 18,
+      "dur": 7
+    },
+    {
+      "id": 3,
+      "startDay": 20,
+      "startRate": 78.87,
+      "peakDay": 22,
+      "peakRate": 87.64,
+      "endDay": 25,
+      "dur": 5
+    },
+    {
+      "id": 4,
+      "startDay": 26,
+      "startRate": 62.2,
+      "peakDay": 49,
+      "peakRate": 77.14,
+      "endDay": 60,
+      "dur": 34
+    },
+    {
+      "id": 5,
+      "startDay": 63,
+      "startRate": 58.72,
+      "peakDay": 66,
+      "peakRate": 65.9,
+      "endDay": 74,
+      "dur": 11
+    },
+    {
+      "id": 6,
+      "startDay": 77,
+      "startRate": 48.75,
+      "peakDay": 140,
+      "peakRate": 71.37,
+      "endDay": 182,
+      "dur": 105
+    },
+    {
+      "id": 7,
+      "startDay": 185,
+      "startRate": 39.54,
+      "peakDay": 204,
+      "peakRate": 47.98,
+      "endDay": 217,
+      "dur": 32
+    },
+    {
+      "id": 8,
+      "startDay": 222,
+      "startRate": 26.1,
+      "peakDay": 280,
+      "peakRate": 37.34,
+      "endDay": 365,
+      "dur": 143
+    }
+  ]
+}

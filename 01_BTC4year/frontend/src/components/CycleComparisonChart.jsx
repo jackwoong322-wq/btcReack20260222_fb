@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import { useCycleComparisonData } from '../hooks/useChartData'
-import { COLORS } from '../utils/chartData'
+import { COLORS, COLOR_NAMES } from '../utils/chartData'
 import { useResizeChart } from '../hooks/useResizeChart'
 import '../styles/Chart.css'
 
@@ -11,7 +11,7 @@ function dayToDateString(day) {
   return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`
 }
 
-export default function CycleComparisonChart() {
+export default function CycleComparisonChart({ onHeaderContent }) {
   const { series, loading, error } = useCycleComparisonData()
   const containerRef = useRef(null)
   const chartRef     = useRef(null)
@@ -20,6 +20,45 @@ export default function CycleComparisonChart() {
 
   /* ResizeObserver 반응형 — width & height 모두 감시 */
   useResizeChart(containerRef, [chartRef], { watchHeight: true })
+
+  // 헤더 슬롯에 타이틀 + 사이클 카드 올리기
+  useEffect(() => {
+    if (!onHeaderContent) return
+    if (series.length === 0) return
+
+    // 그래프 색과 동일한 색상 배열 (COLORS와 동일 순서)
+    const colorHex = COLORS  // ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', ...]
+
+    onHeaderContent(
+      <>
+        <span className="header-slot-title">Bitcoin Cycles Comparison</span>
+        <span className="header-slot-sub">| Days Since Peak</span>
+        {series.map((s, idx) => (
+          <div
+            key={s.name}
+            className={`header-stat-card ${hiddenSeries.has(s.name) ? 'inactive' : ''}`}
+            onClick={() => toggleSeries(s.name)}
+          >
+            <span
+              className="header-stat-label"
+              style={{ color: colorHex[idx % colorHex.length] }}
+            >
+              C{idx + 1}:{s.startDate}
+            </span>
+            <span className="header-stat-value">
+              <span>{s.minRate.toFixed(1)}%</span>
+              <span>{s.dayCount}d</span>
+            </span>
+          </div>
+        ))}
+      </>
+    )
+  }, [series, hiddenSeries, onHeaderContent])
+
+  // 언마운트 시 헤더 슬롯 비우기
+  useEffect(() => {
+    return () => { if (onHeaderContent) onHeaderContent(null) }
+  }, [onHeaderContent])
 
   useEffect(() => {
     if (!containerRef.current || series.length === 0) return
@@ -140,47 +179,17 @@ export default function CycleComparisonChart() {
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
-          <div className="chart-header">
-            <div>
-              <h2 className="chart-title">Bitcoin Cycles Comparison</h2>
-              <p style={{ color: '#848E9C', fontSize: '12px', marginTop: 4 }}>X축: Days Since Peak</p>
-            </div>
 
-            <div className="stats">
-              {series.map((s, idx) => (
-                <div
-                  key={s.name}
-                  className={`stat-card ${s.colorName} ${hiddenSeries.has(s.name) ? 'inactive' : ''}`}
-                  onClick={() => toggleSeries(s.name)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <span className={`stat-label ${s.colorName}`}>C{idx + 1}:{s.startDate}</span>
-                  <span className="stat-value">
-                    <span>{s.minRate.toFixed(1)}%</span>
-                    <span>{s.dayCount}d</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="toolbar">
-              <button className="toolbar-btn" title="초기화" onClick={resetView}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                  <path d="M3 3v5h5" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* 차트 — flex 1로 남은 공간 전부 */}
+          {/* 차트 — 헤더 제거로 전체 공간 사용 */}
           <div
             ref={containerRef}
             className="chart-area"
             style={{ flex: 1, minHeight: 250 }}
           />
 
-          <div className="chart-footer">Data source: Supabase BTC/USDT OHLCV</div>
+          <div className="chart-footer" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+            <span>Data source: Supabase BTC/USDT OHLCV</span>
+          </div>
         </div>
       </div>
     </div>

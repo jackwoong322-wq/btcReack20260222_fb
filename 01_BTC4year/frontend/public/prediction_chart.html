@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cycle 4 예측 차트</title>
+<script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0B0E11; color: #848E9C; font-family: -apple-system, sans-serif; padding: 16px; }
+  h2 { color: #E2E8F0; font-size: 16px; margin-bottom: 4px; }
+  .subtitle { font-size: 12px; color: #848E9C; margin-bottom: 12px; }
+  #chart { width: 100%; height: calc(100vh - 140px); min-height: 400px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 12px; }
+  .leg { display: flex; align-items: center; gap: 5px; }
+  .leg-line { width: 24px; height: 2px; }
+  .leg-dash { width: 24px; height: 0; border-top: 2px dashed; }
+  .info { margin-top: 8px; font-size: 11px; color: #64748B; }
+  .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; margin-right: 4px; font-size: 11px; }
+</style>
+</head>
+<body>
+<h2>🐻 Cycle 4 Bear Market — 나의 예측 (Cycle3 패턴 × C4 스케일)</h2>
+<div class="subtitle">
+  예측 방식: Cycle4 실제(Box1~4) vs Cycle3 비교 → 스케일 팩터(drop×1.70, rise×1.50) → Cycle3 Box5~8에 적용
+  <span class="badge" style="background:#1E3A5F;color:#60A5FA;">실제</span>
+  <span class="badge" style="background:#422006;color:#F59E0B;">예측중앙</span>
+  <span class="badge" style="background:#14532D;color:#4ADE80;">낙관(+1σ)</span>
+  <span class="badge" style="background:#450A0A;color:#F87171;">비관(-1σ)</span>
+</div>
+<div id="chart"></div>
+<div class="legend">
+  <div class="leg"><div class="leg-line" style="background:#3B82F6;height:2px;width:24px;"></div><span>Cycle4 실제</span></div>
+  <div class="leg"><div class="leg-line" style="border-top:2px dashed #0ECB81;width:24px;height:0"></div><span>실제 저점</span></div>
+  <div class="leg"><div class="leg-line" style="border-top:2px dashed #F6465D;width:24px;height:0"></div><span>실제 고점</span></div>
+  <div class="leg"><div class="leg-line" style="border-top:2px dashed #F59E0B;width:24px;height:0"></div><span>예측 중앙</span></div>
+  <div class="leg"><div class="leg-line" style="border-top:2px dashed rgba(16,185,129,0.7);width:24px;height:0"></div><span>낙관 +1σ</span></div>
+  <div class="leg"><div class="leg-line" style="border-top:2px dashed rgba(246,70,93,0.7);width:24px;height:0"></div><span>비관 -1σ</span></div>
+</div>
+<div class="info" id="info"></div>
+
+<script>
+// ── 실제 Cycle4 데이터 (계산 결과) ──────────────────────────
+// 실제 박스 (Cycle4 Box1~4)
+const realBoxes = [
+  { id:1, startRate:81.82, peakRate:93.38, endRate:79.39, startDay:1,  peakDay:13,  endDay:25  },
+  { id:2, startRate:79.39, peakRate:86.24, endRate:64.66, startDay:26, peakDay:30,  endDay:34  },
+  { id:3, startRate:64.66, peakRate:78.55, endRate:48.13, startDay:35, peakDay:70,  endDay:105 },
+  { id:4, startRate:48.13, peakRate:57.98, endRate:48.13, startDay:106,peakDay:112, endDay:118 },
+]
+
+// 예측 박스 (Cycle3 × 스케일팩터 drop×1.70, rise×1.50)
+// 중앙: dropC3×1.70, riseC3×1.50
+// +1σ: drop×(1.70-0.3), rise×(1.50+0.3)  낙관
+// -1σ: drop×(1.70+0.3), rise×(1.50-0.3)  비관
+const c3Boxes = [
+  // Box5: C3 drop=23.9%, rise=12.2%, dur=11d
+  { c3drop:23.9, c3rise:12.2, c3dur:11  },
+  // Box6: C3 drop=26.0%, rise=46.4%, dur=105d
+  { c3drop:26.0, c3rise:46.4, c3dur:105 },
+  // Box7: C3 drop=44.6%, rise=21.3%, dur=32d
+  { c3drop:44.6, c3rise:21.3, c3dur:32  },
+  // Box8: C3 drop=45.6%, rise=43.1%, dur=143d
+  { c3drop:45.6, c3rise:43.1, c3dur:143 },
+]
+
+const SD = 0.30  // ±1σ 스케일 변동폭
+
+function buildPreds(prevPeak, startDay, scaleDrop, scaleRise) {
+  let day = startDay, peak = prevPeak
+  return c3Boxes.map((c3, i) => {
+    // 중앙
+    const dropM = c3.c3drop * scaleDrop
+    const riseM = c3.c3rise * scaleRise
+    const loM   = Math.round(peak * (1 - dropM/100) * 100) / 100
+    const hiM   = Math.round(loM  * (1 + riseM/100) * 100) / 100
+    // 낙관 (+1σ: 덜 떨어지고, 더 오름)
+    const dropHi = c3.c3drop * Math.max(0.1, scaleDrop - SD)
+    const riseHi = c3.c3rise * (scaleRise + SD)
+    const loHi   = Math.round(peak * (1 - dropHi/100) * 100) / 100
+    const hiHi   = Math.round(loHi  * (1 + riseHi/100) * 100) / 100
+    // 비관 (-1σ: 더 떨어지고, 덜 오름)
+    const dropLo = c3.c3drop * (scaleDrop + SD)
+    const riseLo = c3.c3rise * Math.max(0.1, scaleRise - SD)
+    const loLo   = Math.round(peak * (1 - dropLo/100) * 100) / 100
+    const hiLo   = Math.round(loLo  * (1 + riseLo/100) * 100) / 100
+
+    const dur = c3.c3dur
+    const s = day, e = day + dur, p = day + Math.round(dur/2)
+    day = e + 1
+    peak = hiM
+    return { id: 5+i, startDay:s, peakDay:p, endDay:e,
+      startM:loM, peakM:hiM, startHi:loHi, peakHi:hiHi, startLo:loLo, peakLo:hiLo,
+      dropM:dropM.toFixed(1), riseM:riseM.toFixed(1) }
+  })
+}
+
+const lastReal = realBoxes[realBoxes.length - 1]
+const preds = buildPreds(lastReal.peakRate, lastReal.endDay + 1, 1.70, 1.50)
+
+// 간단한 가상 가격선 생성 (day → rate)
+// Cycle4 실제: 각 박스의 시작→저점→고점→끝 을 연결
+function makeRealLine() {
+  const pts = []
+  // Day 0 = 100%
+  pts.push({ day: 0, v: 100 })
+  realBoxes.forEach(b => {
+    pts.push({ day: b.startDay, v: b.startRate })
+    pts.push({ day: b.peakDay,  v: b.peakRate  })
+    if (b.id < 4) pts.push({ day: b.endDay, v: realBoxes[b.id].startRate })
+  })
+  pts.push({ day: lastReal.endDay, v: lastReal.startRate })
+  // 정렬 후 중복 제거
+  pts.sort((a,b) => a.day - b.day)
+  const seen = new Set()
+  return pts.filter(p => { if(seen.has(p.day)) return false; seen.add(p.day); return true })
+}
+
+// day를 날짜 문자열로 변환 (2024-11-01 기준 = Cycle4 Day0)
+// Cycle 4 시작 추정: BTC 2024년 3월 고점 → 하락 시작
+const BASE_DATE = new Date('2024-03-15')
+function dayToDate(day) {
+  const d = new Date(BASE_DATE)
+  d.setDate(d.getDate() + day)
+  return d.toISOString().slice(0,10)
+}
+
+// ── 차트 생성 ──────────────────────────────────────────────
+const chart = LightweightCharts.createChart(document.getElementById('chart'), {
+  layout: { background: { color: '#0B0E11' }, textColor: '#848E9C' },
+  grid: { vertLines: { color: '#1C2127' }, horzLines: { color: '#1C2127' } },
+  crosshair: {
+    mode: 1,
+    vertLine: { color: '#F59E0B', width:1, style:3, labelBackgroundColor:'#2B3139' },
+    horzLine: { color: '#F59E0B', width:1, style:3, labelBackgroundColor:'#2B3139' },
+  },
+  rightPriceScale: { borderColor: '#2B3139' },
+  timeScale: { borderColor: '#2B3139', timeVisible: true },
+  handleScroll: { mouseWheel:true, pressedMouseMove:true },
+  handleScale: { mouseWheel:true, pinch:true },
+})
+
+// 실제 라인
+const realLine = chart.addLineSeries({ color:'#3B82F6', lineWidth:2, title:'Cycle4 실제' })
+realLine.setData(makeRealLine().map(p => ({ time: dayToDate(p.day), value: p.v })))
+
+// 실제 박스 (Box1~4)
+const markers = []
+realBoxes.forEach(b => {
+  const topLine = chart.addLineSeries({
+    color:'#F6465D', lineWidth:1, lineStyle:2,
+    priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false
+  })
+  topLine.setData([
+    { time: dayToDate(b.startDay), value: b.peakRate },
+    { time: dayToDate(b.peakDay),  value: b.peakRate },
+    { time: dayToDate(b.endDay),   value: b.peakRate },
+  ])
+  topLine.setMarkers([{ time: dayToDate(b.peakDay), position:'aboveBar', color:'#F6465D', shape:'arrowDown', text:`H${b.id} ${b.peakRate}%` }])
+
+  const botLine = chart.addLineSeries({
+    color:'#0ECB81', lineWidth:1, lineStyle:2,
+    priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false
+  })
+  botLine.setData([
+    { time: dayToDate(b.startDay), value: b.startRate },
+    { time: dayToDate(b.endDay),   value: b.startRate },
+  ])
+  botLine.setMarkers([{ time: dayToDate(b.startDay), position:'belowBar', color:'#0ECB81', shape:'circle', text:`L${b.id} ${b.startRate}%` }])
+})
+
+// 예측 박스 (Box5~8) 렌더링
+preds.forEach(p => {
+  const sd = dayToDate(p.startDay), ed = dayToDate(p.endDay), pd = dayToDate(p.peakDay)
+
+  // 중앙 고점
+  const mTop = chart.addLineSeries({ color:'#F59E0B', lineWidth:1.5, lineStyle:3, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  mTop.setData([ { time:sd, value:p.peakM }, { time:pd, value:p.peakM }, { time:ed, value:p.peakM } ])
+  mTop.setMarkers([{ time:pd, position:'aboveBar', color:'#F59E0B', shape:'arrowDown', text:`H${p.id}? ${p.peakM}% ↑${p.riseM}%` }])
+
+  // 중앙 저점
+  const mBot = chart.addLineSeries({ color:'#6B7280', lineWidth:1.5, lineStyle:3, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  mBot.setData([ { time:sd, value:p.startM }, { time:ed, value:p.startM } ])
+  mBot.setMarkers([{ time:sd, position:'belowBar', color:'#6B7280', shape:'circle', text:`L${p.id}? ${p.startM}% ↓${p.dropM}%` }])
+
+  // 낙관 +1σ
+  const hTop = chart.addLineSeries({ color:'rgba(16,185,129,0.55)', lineWidth:1, lineStyle:4, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  hTop.setData([ { time:sd, value:p.peakHi }, { time:ed, value:p.peakHi } ])
+  const hBot = chart.addLineSeries({ color:'rgba(16,185,129,0.55)', lineWidth:1, lineStyle:4, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  hBot.setData([ { time:sd, value:p.startHi }, { time:ed, value:p.startHi } ])
+
+  // 비관 -1σ
+  const lTop = chart.addLineSeries({ color:'rgba(246,70,93,0.55)', lineWidth:1, lineStyle:4, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  lTop.setData([ { time:sd, value:p.peakLo }, { time:ed, value:p.peakLo } ])
+  const lBot = chart.addLineSeries({ color:'rgba(246,70,93,0.55)', lineWidth:1, lineStyle:4, priceLineVisible:false, lastValueVisible:false, crosshairMarkerVisible:false })
+  lBot.setData([ { time:sd, value:p.startLo }, { time:ed, value:p.startLo } ])
+})
+
+chart.timeScale().fitContent()
+
+// 예측 요약 표시
+const infoEl = document.getElementById('info')
+infoEl.innerHTML = '📊 예측 요약: ' + preds.map(p =>
+  `<span class="badge" style="background:#1C2127;border:1px solid #F59E0B;color:#F59E0B">
+    Box${p.id}: L${p.startM}%~H${p.peakM}%
+  </span>`
+).join('') +
+'&nbsp;&nbsp;| 비관: ' + preds.map(p =>
+  `<span style="color:rgba(246,70,93,0.9)">L${p.startLo}%</span>`
+).join('→') +
+'&nbsp;&nbsp;| 낙관: ' + preds.map(p =>
+  `<span style="color:rgba(16,185,129,0.9)">H${p.peakHi}%</span>`
+).join('→')
+</script>
+</body>
+</html>

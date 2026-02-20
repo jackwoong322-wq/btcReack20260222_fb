@@ -95,6 +95,7 @@
 /* 사이클 색상 */
 .stat-label.cycle1, .stat-label.orange { color: #F59E0B; }
 .stat-label.cycle2, .stat-label.blue   { color: #3B82F6; }
+.stat-label.cycle3, .stat-label.red    { color: #EF4444; }   /* C3 빨강 추가 */
 .stat-label.cycle3, .stat-label.purple { color: #A855F7; }
 .stat-label.cycle4, .stat-label.green  { color: #10B981; }
 
