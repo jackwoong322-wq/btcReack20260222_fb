@@ -141,33 +141,38 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
       }
 
       // 예측 박스를 일별 보간 데이터로 변환
-      // 저점→고점 구간: 선형 보간 상승, 고점→저점 구간: 선형 보간 하락
+      // 실제선 마지막값 → 첫 저점 → 고점 → 저점 → ... 순서로 매일 1포인트
       const buildDailyPredPath = (startTime, startValue, getVals) => {
-        const pts = [{ time: startTime, value: startValue }]
-        let lastDate = new Date(startTime)
+        const pts = [{ time: startTime, value: startValue }]  // 실제선 마지막점 포함
+        let lastDate  = new Date(startTime)
         let lastValue = startValue
 
-        predictions.forEach((pred) => {
+        predictions.forEach((pred, i) => {
           const v = getVals(pred)
           if (!v) return
 
-          const segments = [
-            { toDate: new Date(v.s), toValue: v.L },   // 현재→저점
-            { toDate: new Date(v.pk), toValue: v.H },  // 저점→고점
-            { toDate: new Date(v.e), toValue: v.L },   // 고점→저점
-          ]
+          const segments = i === 0
+            ? [
+                { toDate: new Date(v.s),  toValue: v.L },  // 실제 마지막→첫 저점
+                { toDate: new Date(v.pk), toValue: v.H },  // 저점→고점
+                { toDate: new Date(v.e),  toValue: v.L },  // 고점→저점
+              ]
+            : [
+                { toDate: new Date(v.pk), toValue: v.H },  // 이전 저점→고점
+                { toDate: new Date(v.e),  toValue: v.L },  // 고점→저점
+              ]
 
           segments.forEach(seg => {
             const days = Math.round((seg.toDate - lastDate) / 86400000)
             if (days <= 0) return
-            for (let i = 1; i <= days; i++) {
+            for (let j = 1; j <= days; j++) {
               const t = new Date(lastDate)
-              t.setDate(t.getDate() + i)
-              const ratio = i / days
+              t.setDate(t.getDate() + j)
+              const ratio = j / days
               const value = Math.round((lastValue + (seg.toValue - lastValue) * ratio) * 100) / 100
               pts.push({ time: toDateString(t.toISOString()), value })
             }
-            lastDate = new Date(seg.toDate)
+            lastDate  = new Date(seg.toDate)
             lastValue = seg.toValue
           })
         })
@@ -210,7 +215,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
       }))
       if (midPath.length > 1) {
         const midSeries = chart.addLineSeries({
-          color: '#F59E0B', lineWidth: 2, lineStyle: 0,
+          color: '#F59E0B', lineWidth: 2, lineStyle: 2,
           priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
         })
         midSeries.setData(midPath)
@@ -227,7 +232,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
       })
       if (hiPath.length > 1) {
         const hiSeries = chart.addLineSeries({
-          color: '#10B981', lineWidth: 1.5, lineStyle: 0,
+          color: '#10B981', lineWidth: 1.5, lineStyle: 2,
           priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
         })
         hiSeries.setData(hiPath)
