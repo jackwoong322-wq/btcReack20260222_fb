@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createChart } from 'lightweight-charts'
-import { supabase } from '../lib/supabase'
+import { fetchOhlcvData } from '../lib/api'
 import { useResizeChart } from '../hooks/useResizeChart'
 import '../styles/Chart.css'
 
@@ -141,27 +141,13 @@ export default function TradingChart() {
     [mainChartRef, volChartRef, rsiChartRef, macdChartRef],
   )
 
-  /* 데이터 로드 */
+  /* 데이터 로드 — Backend API 사용 */
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      let allData = []
-      let offset = 0
-      const batchSize = 1000
 
-      while (true) {
-        const { data, error: fetchError } = await supabase
-          .from('ohlcv_1day')
-          .select('timestamp, readable_time, open, high, low, close, volume')
-          .order('timestamp', { ascending: true })
-          .range(offset, offset + batchSize - 1)
-
-        if (fetchError) throw fetchError
-        if (!data || data.length === 0) break
-        allData = [...allData, ...data]
-        if (data.length < batchSize) break
-        offset += batchSize
-      }
+      const result = await fetchOhlcvData()
+      const allData = result.data || []
 
       if (allData.length === 0) throw new Error('데이터 없음')
 
@@ -199,8 +185,7 @@ export default function TradingChart() {
       }
       setLoading(false)
     } catch (err) {
-console.error('데이터 로드 실패:', err.message, err.code, err.details, err.hint)
-  
+      console.error('데이터 로드 실패:', err.message)
       setError(err.message)
       setLoading(false)
     }

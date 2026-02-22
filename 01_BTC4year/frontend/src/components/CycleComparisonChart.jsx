@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import { useCycleComparisonData } from '../hooks/useChartData'
-import { COLORS, COLOR_NAMES } from '../utils/chartData'
+import { COLORS, COLOR_NAMES } from '../utils/chartConstants'
 import { useResizeChart } from '../hooks/useResizeChart'
 import '../styles/Chart.css'
 
