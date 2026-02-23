@@ -15,15 +15,24 @@ app = FastAPI(
 
 # ── CORS 설정 ──────────────────────────────────────────
 # Render 배포 시 프론트엔드 도메인을 추가하세요
+import os
+
+# 환경변수로 CORS 허용 도메인 설정 (프로덕션)
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []
+
+# 기본 허용 도메인 (개발 + 프로덕션)
+default_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://btc-reack20260222-fb.vercel.app",  # Vercel 프론트엔드
+]
+
+# 환경변수에서 추가 도메인 병합
+all_origins = default_origins + [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "https://*.vercel.app",     # Vercel 배포 시
-        "https://*.netlify.app",    # Netlify 배포 시
-        # TODO: 실제 프론트엔드 도메인 추가
-    ],
+    allow_origins=all_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

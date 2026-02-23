@@ -3,8 +3,19 @@
  * 기존 supabase.js를 대체 — 모든 데이터를 Backend API를 통해 조회
  */
 
-// 환경변수로 API URL 설정 (Vite)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// 환경변수 + 실행 환경에 따라 API URL 결정
+let API_BASE_URL = import.meta.env.VITE_API_URL
+
+// Vercel 프로덕션(프론트)에서 환경변수가 없다면 Render 백엔드로 기본 지정
+if (!API_BASE_URL && typeof window !== 'undefined') {
+  if (window.location.hostname.endsWith('vercel.app')) {
+    // Render Web Service 도메인으로 교체
+    API_BASE_URL = 'https://btcreack20260222-fb.onrender.com'
+  } else {
+    // 로컬 개발 기본값
+    API_BASE_URL = 'http://localhost:8000'
+  }
+}
 
 async function apiFetch(path, params = {}) {
   const url = new URL(`${API_BASE_URL}${path}`)
