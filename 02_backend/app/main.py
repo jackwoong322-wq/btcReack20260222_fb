@@ -1,7 +1,8 @@
 """
-Bitcoin Cycle Analyzer — FastAPI Backend
-Render 배포용
+Bitcoin Cycle Analyzer FastAPI Backend.
 """
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,42 +11,44 @@ from app.routers import cycle, trading
 app = FastAPI(
     title="Bitcoin Cycle Analyzer API",
     version="1.0.0",
-    description="BTC 4년 주기 분석 API",
+    description="BTC 4-year cycle analysis API",
 )
 
-# ── CORS 설정 ──────────────────────────────────────────
-# Render 배포 시 프론트엔드 도메인을 추가하세요
-import os
+# Configure CORS for local development, the production Vercel domain,
+# and Vercel preview deployments used during testing/review.
+ALLOWED_ORIGINS = (
+    os.getenv("ALLOWED_ORIGINS", "").split(",")
+    if os.getenv("ALLOWED_ORIGINS")
+    else []
+)
 
-# 환경변수로 CORS 허용 도메인 설정 (프로덕션)
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else []
-
-# 기본 허용 도메인 (개발 + 프로덕션)
 default_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://btc-reack20260222-fb.vercel.app",  # Vercel 프론트엔드
+    "https://btc-reack20260222-fb.vercel.app",
 ]
 
-# 환경변수에서 추가 도메인 병합
-all_origins = default_origins + [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+all_origins = default_origins + [
+    origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()
+]
 
-# 로컬 개발: 브라우저 Origin이 http://127.0.0.1:3000 vs http://localhost:3000 처럼 달라도 허용
-# (목록만으로는 누락·캐시·구버전 프로세스 이슈가 있을 수 있어 정규식으로 보강)
 _LOCAL_ORIGIN_REGEX = r"^https?://(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$"
+_VERCEL_PREVIEW_REGEX = (
+    r"^https://btc-reack20260222-[a-z0-9-]+-woongs-projects-[a-z0-9]+\.vercel\.app$"
+)
+_ALLOWED_ORIGIN_REGEX = f"{_LOCAL_ORIGIN_REGEX}|{_VERCEL_PREVIEW_REGEX}"
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=all_origins,
-    allow_origin_regex=_LOCAL_ORIGIN_REGEX,
+    allow_origin_regex=_ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ── 라우터 등록 ────────────────────────────────────────
 app.include_router(cycle.router, prefix="/api", tags=["cycle"])
 app.include_router(trading.router, prefix="/api", tags=["trading"])
 

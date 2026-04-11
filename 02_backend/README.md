@@ -57,6 +57,7 @@ npm run dev
 ```
 
 `.env.local`에 `VITE_API_URL`(백엔드 URL)을 설정합니다.
+Vercel 프리뷰 도메인에서 호출할 경우 백엔드의 `ALLOWED_ORIGINS`에도 해당 도메인을 추가해야 합니다.
 
 ## API 엔드포인트
 
@@ -75,11 +76,12 @@ npm run dev
 
 1. Render 대시보드에서 **New Web Service** 생성
 2. Repository 연결 → root directory를 `02_backend`로 설정
-3. Environment:
+3. 기존 서비스에서 예전 경로 `01_BTC4year/backend`가 남아 있으면 Settings에서 `02_backend`로 변경
+4. Environment:
    - **Build Command**: `pip install -r requirements.txt`
    - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Environment Variables에 `SUPABASE_URL`, `SUPABASE_KEY` 추가
-5. Deploy!
+5. Environment Variables에 `SUPABASE_URL`, `SUPABASE_KEY` 추가
+6. Deploy!
 
 배포 후 `01_frontend/`의 `.env.local`에서 `VITE_API_URL`을 Render URL로 변경:
 ```
