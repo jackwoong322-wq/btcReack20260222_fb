@@ -1,0 +1,7 @@
+﻿Follow `AGENTS.md` at the repository root as the primary shared project guide.
+
+Cursor-specific compatibility notes:
+
+- Apply the shared rules in `AGENTS.md` first.
+- When there is no conflict, also use project-local skills from `.cursor/skills/`.
+- Keep this file intentionally short so Cursor and Codex stay aligned.

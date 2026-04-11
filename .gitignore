@@ -1,5 +1,10 @@
-# VSCode
+# VSCode / local agent tooling
 .vscode/
+.cursor/
+.claude/
+.agents/
+impeccable/
+skills-lock.json
 
 # Python
 __pycache__/
@@ -8,13 +13,13 @@ __pycache__/
 *.pyd
 *.env
 .env
-.venv
+.venv/
 venv/
 ENV/
+.pytest_cache/
 
 # Node
 node_modules/
-package-lock.json
 yarn.lock
 npm-debug.log*
 
@@ -26,15 +31,17 @@ dist/
 .DS_Store
 Thumbs.db
 
-# 기타
+# Misc runtime files
 *.log
 *.sqlite3
 *.db
+*.bak
+*.tmp
+~$*
 
 # Supabase
 .supabase/
 
-# 기타 임시/백업 파일
-*.bak
-*.tmp
-~$*
+# Temp outputs
+temp/*
+!temp/.gitignore
