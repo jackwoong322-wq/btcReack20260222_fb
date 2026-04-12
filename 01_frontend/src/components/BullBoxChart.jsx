@@ -2,23 +2,23 @@ import { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import { useBullBoxData } from '../hooks/useChartData'
 import { useResizeChart } from '../hooks/useResizeChart'
+import { CHART_THEME } from '../utils/chartConstants'
+import { ChartErrorState, ChartLoadingState } from './ChartStatus'
 import '../styles/Chart.css'
 
 function toDateString(timestamp) {
   if (!timestamp) return null
-  const d = new Date(timestamp)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const date = new Date(timestamp)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 export default function BullBoxChart({ cycleNumber = 3 }) {
   const { lineData, boxes, loading, error, cycleInfo, config } = useBullBoxData(cycleNumber)
   const containerRef = useRef(null)
-  const chartRef     = useRef(null)
+  const chartRef = useRef(null)
 
-  const resizeLayoutKey =
-    !loading && !error && lineData.length > 0 ? lineData.length : 0
+  const resizeLayoutKey = !loading && !error && lineData.length > 0 ? lineData.length : 0
 
-  /* ResizeObserver Î∞òÏùëÌòï */
   useResizeChart(containerRef, [chartRef], {
     watchHeight: true,
     layoutKey: resizeLayoutKey,
@@ -28,82 +28,87 @@ export default function BullBoxChart({ cycleNumber = 3 }) {
     if (!containerRef.current || lineData.length === 0) return
 
     const dateToDay = {}
-    lineData.forEach(d => {
-      if (d.timestamp) dateToDay[toDateString(d.timestamp)] = d.day
+    lineData.forEach((item) => {
+      if (item.timestamp) dateToDay[toDateString(item.timestamp)] = item.day
     })
 
-    try { chartRef.current?.remove() } catch (_) {}
+    try {
+      chartRef.current?.remove()
+    } catch (_) {}
     chartRef.current = null
 
     const chart = createChart(containerRef.current, {
-      layout: { background: { color: '#0B0E11' }, textColor: '#848E9C' },
+      layout: { background: { color: CHART_THEME.background }, textColor: CHART_THEME.textMuted },
       grid: {
-        vertLines: { color: '#1C2127' },
-        horzLines: { color: '#1C2127' },
+        vertLines: { color: CHART_THEME.grid },
+        horzLines: { color: CHART_THEME.grid },
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: '#758696', width: 1, style: 3, labelBackgroundColor: '#2B3139' },
-        horzLine: { color: '#758696', width: 1, style: 3, labelBackgroundColor: '#2B3139' },
+        vertLine: { color: CHART_THEME.crosshair, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
+        horzLine: { color: CHART_THEME.crosshair, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
       },
-      rightPriceScale: { borderColor: '#2B3139' },
-      timeScale: { borderColor: '#2B3139', timeVisible: false },
+      rightPriceScale: { borderColor: CHART_THEME.border },
+      timeScale: { borderColor: CHART_THEME.border, timeVisible: false },
       localization: {
-        timeFormatter: (ts) => {
-          if (typeof ts === 'string') {
-            const day = dateToDay[ts]
-            return day !== undefined ? `Day ${day}` : ts
+        timeFormatter: (timestamp) => {
+          if (typeof timestamp === 'string') {
+            const day = dateToDay[timestamp]
+            return day !== undefined ? `Day ${day}` : timestamp
           }
-          const dateStr = toDateString(new Date(ts * 1000).toISOString())
+          const dateStr = toDateString(new Date(timestamp * 1000).toISOString())
           const day = dateToDay[dateStr]
           return day !== undefined ? `Day ${day}` : dateStr
         },
       },
       handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
       handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-      width:  containerRef.current.clientWidth  || 360,
+      width: containerRef.current.clientWidth || 360,
       height: containerRef.current.clientHeight || 500,
     })
     chartRef.current = chart
 
-    const lineSeries = chart.addLineSeries({ color: '#10B981', lineWidth: 2 })
+    const lineSeries = chart.addLineSeries({ color: CHART_THEME.success, lineWidth: 2 })
     const chartData = lineData
-      .filter(d => d.timestamp)
-      .map(d => ({ time: toDateString(d.timestamp), value: d.value }))
-      .filter(d => d.time)
+      .filter((item) => item.timestamp)
+      .map((item) => ({ time: toDateString(item.timestamp), value: item.value }))
+      .filter((item) => item.time)
     lineSeries.setData(chartData)
 
     boxes.forEach((box, idx) => {
       const startDate = toDateString(box.Start_Timestamp)
-      const endDate   = toDateString(box.End_Timestamp)
-      const lowDate   = toDateString(box.Low_Timestamp)
+      const endDate = toDateString(box.End_Timestamp)
+      const lowDate = toDateString(box.Low_Timestamp)
       if (!startDate || !endDate) return
 
-      const prevBox        = idx > 0 ? boxes[idx - 1] : null
-      const prevLowRate    = prevBox ? prevBox.Low_Rate : box.Low_Rate
-      const riseFromPrevLow  = ((box.Start_Rate - prevLowRate) / prevLowRate * 100).toFixed(1)
+      const prevBox = idx > 0 ? boxes[idx - 1] : null
+      const prevLowRate = prevBox ? prevBox.Low_Rate : box.Low_Rate
+      const riseFromPrevLow = ((box.Start_Rate - prevLowRate) / prevLowRate * 100).toFixed(1)
       const dropFromPrevHigh = ((box.Start_Rate - box.Low_Rate) / box.Start_Rate * 100).toFixed(1)
 
-      // Îπ®Í∞Ñ Ï†êÏÑ† (Í≥†Ï†ê ÏàòÌèâÏÑ†)
       const topLine = chart.addLineSeries({
-        color: '#F6465D', lineWidth: 1, lineStyle: 2,
-        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+        color: CHART_THEME.danger,
+        lineWidth: 1,
+        lineStyle: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
       })
       topLine.setData([
         { time: startDate, value: box.Start_Rate },
-        { time: endDate,   value: box.Start_Rate },
+        { time: endDate, value: box.Start_Rate },
       ])
-
-      // Í≥†Ï†ê ÎßàÏª§Î•º topLineÏóê ÏßÅÏ†ë Î∂ÄÏ∞© ‚Üí Start_Rate Í∞í Í∏∞Ï§Ä aboveBar
       topLine.setMarkers([{
-        time: startDate, position: 'aboveBar', color: '#F6465D', shape: 'arrowDown',
-        text: `H${idx + 1} ${box.Start_Rate.toFixed(1)}% ‚Üë${riseFromPrevLow}%`,
+        time: startDate,
+        position: 'aboveBar',
+        color: CHART_THEME.danger,
+        shape: 'arrowDown',
+        text: `H${idx + 1} ${box.Start_Rate.toFixed(1)}% (+${riseFromPrevLow}%)`,
       }])
 
-      // Ï¥àÎ°ù Ï†êÏÑ† (Ï†ÄÏ†ê ÏàòÌèâÏÑ†) ‚Äî lowDate Ìè¨Ïù∏Ìä∏ Ìè¨Ìï®Ìï¥ÏÑú Ìï¥Îãπ ÏãúÏ†ê value ÌôïÎ≥¥
       const bottomLineData = [
         { time: startDate, value: box.Low_Rate },
-        { time: endDate,   value: box.Low_Rate },
+        { time: endDate, value: box.Low_Rate },
       ]
       if (lowDate && lowDate !== startDate && lowDate !== endDate) {
         bottomLineData.push({ time: lowDate, value: box.Low_Rate })
@@ -111,16 +116,21 @@ export default function BullBoxChart({ cycleNumber = 3 }) {
       bottomLineData.sort((a, b) => a.time.localeCompare(b.time))
 
       const bottomLine = chart.addLineSeries({
-        color: '#0ECB81', lineWidth: 1, lineStyle: 2,
-        priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+        color: CHART_THEME.success,
+        lineWidth: 1,
+        lineStyle: 2,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
       })
       bottomLine.setData(bottomLineData)
-
-      // Ï†ÄÏ†ê ÎßàÏª§Î•º bottomLineÏóê ÏßÅÏ†ë Î∂ÄÏ∞© ‚Üí Low_Rate Í∞í Í∏∞Ï§Ä belowBar
       if (lowDate) {
         bottomLine.setMarkers([{
-          time: lowDate, position: 'belowBar', color: '#0ECB81', shape: 'circle',
-          text: `L${idx + 1} ${box.Low_Rate.toFixed(1)}% ‚Üì${dropFromPrevHigh}%`,
+          time: lowDate,
+          position: 'belowBar',
+          color: CHART_THEME.success,
+          shape: 'circle',
+          text: `L${idx + 1} ${box.Low_Rate.toFixed(1)}% (-${dropFromPrevHigh}%)`,
         }])
       }
     })
@@ -128,49 +138,58 @@ export default function BullBoxChart({ cycleNumber = 3 }) {
     chart.timeScale().fitContent()
 
     return () => {
-      try { chartRef.current?.remove() } catch (_) {}
+      try {
+        chartRef.current?.remove()
+      } catch (_) {}
       chartRef.current = null
     }
   }, [lineData, boxes])
 
-  if (loading) return (
-    <div className="chart-page"><div className="chart-container">
-      <div className="loading-container">Îç∞Ïù¥ÌÑ∞ Î°úÎî© Ï§ë...</div>
-    </div></div>
-  )
+  if (loading) {
+    return (
+      <div className="chart-page"><div className="chart-container">
+        <ChartLoadingState
+          title="µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¥¬ ¡ﬂ¿‘¥œ¥Ÿ..."
+          message="Bull Market Box ±∏∞£¿ª ¡ÿ∫Ò«œ∞Ì ¿÷Ω¿¥œ¥Ÿ."
+        />
+      </div></div>
+    )
+  }
 
-  if (error) return (
-    <div className="chart-page"><div className="chart-container">
-      <div className="error-container">Ïò§Î•ò: {error}</div>
-    </div></div>
-  )
+  if (error) {
+    return (
+      <div className="chart-page"><div className="chart-container">
+        <ChartErrorState
+          title="Bull Market Box µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¡ˆ ∏¯«ﬂΩ¿¥œ¥Ÿ."
+          message={error}
+        />
+      </div></div>
+    )
+  }
 
   return (
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
           <div className="chart-header">
-            <div>
+            <div className="chart-meta">
+              <span className="chart-eyebrow">Bull Box</span>
               <h2 className="chart-title">
-                üêÇ Cycle {cycleNumber} ({cycleInfo.startDate}~{cycleInfo.endDate}) ‚Äî Bull Market Box
+                Cycle {cycleNumber} ({cycleInfo.startDate}~{cycleInfo.endDate}) Bull Market Box
               </h2>
-              <p style={{ color: '#848E9C', margin: '4px 0 0', fontSize: '12px' }}>
-                Drop ‚â•{config.DROP_THRESHOLD}% | Break &gt;{config.BREAK_THRESHOLD}% | 400~1450 Days
+              <p className="chart-description">
+                Drop °√ {config.DROP_THRESHOLD}% | Break &gt; {config.BREAK_THRESHOLD}% | 400~1450 Days
               </p>
             </div>
           </div>
 
-          <div
-            ref={containerRef}
-            className="chart-area"
-            style={{ flex: 1, minHeight: 0, width: '100%' }}
-          />
+          <div ref={containerRef} className="chart-area chart-area-fill" />
 
-          <div className="chart-footer" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="chart-footer chart-footer-row single-line">
             <span>
-              <strong style={{ color: '#0ECB81' }}>Î∞ïÏä§: </strong>{boxes.length}Í∞ú
+              <strong className="chart-strong-success">π⁄Ω∫:</strong> {boxes.length}∞≥
               &nbsp;|&nbsp;
-              <strong style={{ color: '#10B981' }}>Ï¥ù Í∏∞Í∞Ñ: </strong>{cycleInfo.maxDays}Ïùº
+              <strong className="chart-strong-info">√— ±‚∞£:</strong> {cycleInfo.maxDays}¿œ
             </span>
             <span>Data: Supabase cycle data</span>
           </div>
