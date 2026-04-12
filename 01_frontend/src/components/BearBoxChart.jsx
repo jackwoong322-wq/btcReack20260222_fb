@@ -13,7 +13,7 @@ function toDateString(timestamp) {
 }
 
 export default function BearBoxChart({ cycleNumber = 4 }) {
-  const { lineData, boxes, predictions, loading, error, cycleInfo, config } = useBearBoxData(cycleNumber)
+  const { lineData, boxes, predictions, loading, error } = useBearBoxData(cycleNumber)
   const containerRef = useRef(null)
   const chartRef = useRef(null)
 
@@ -339,28 +339,16 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
     )
   }
 
-  const similarCycle = predictions[0]?.similarCycle
-
   return (
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
-          <div className="chart-header">
-            <div className="chart-meta">
-              <span className="chart-eyebrow">Bear Box</span>
-              <h2 className="chart-title">
-                Cycle {cycleNumber} ({cycleInfo.startDate}) Bear Market Box
-              </h2>
-              <p className="chart-description">
-                Rise ≥ {config.RISE_THRESHOLD}% | Break &lt; {config.BREAK_THRESHOLD}% | 0~400 Days
-                {predictions.length > 0 && (
-                  <span className="chart-note-inline">
-                    <span className="chart-note-accent">예측 중심선 표시</span>
-                    {similarCycle && <span className="chart-note-violet">유사 사이클: C{similarCycle}</span>}
-                  </span>
-                )}
-              </p>
-            </div>
+          <div className="chart-title-strip">
+            <span className="chart-title-strip-kicker">Bear Box</span>
+            <h2 className="chart-title-strip-heading">Cycle {cycleNumber} Bear Market Box</h2>
+            <p className="chart-title-strip-copy">
+              0~400일 구간의 하락 박스와 예측 밴드를 한 화면에서 확인합니다.
+            </p>
           </div>
 
           <div ref={containerRef} className="chart-area chart-area-fill" />

@@ -5,7 +5,6 @@ import BearBoxChart from './components/BearBoxChart'
 import BullBoxChart from './components/BullBoxChart'
 import TradingChart from './components/TradingChart'
 import SidebarNavigation from './components/layout/SidebarNavigation'
-import ChartScreenIntro from './components/layout/ChartScreenIntro'
 import { fetchCycleMenu } from './lib/api'
 
 const FALLBACK_BEAR_CYCLES = [
@@ -164,7 +163,6 @@ function App() {
 
       <main id="main-content" className="chart-fullscreen" tabIndex="-1">
         <section className="chart-shell">
-          <ChartScreenIntro title={selectedInfo.title} />
           {renderChart()}
         </section>
       </main>
