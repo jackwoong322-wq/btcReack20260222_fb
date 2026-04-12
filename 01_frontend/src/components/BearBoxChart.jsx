@@ -52,7 +52,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
     function formatLabel(dateStr) {
       const day = dateToDay[dateStr]
       const displayDate = dateStr.replace(/-/g, '.')
-      return day !== undefined ? `${displayDate} (${day}¿œ)` : displayDate
+      return day !== undefined ? `${displayDate} (${day}Ïùº)` : displayDate
     }
 
     try {
@@ -199,7 +199,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
             position: 'aboveBar',
             color: CHART_THEME.accent,
             shape: 'arrowDown',
-            text: `H${boxNumber} ${prediction.Peak_Rate.toFixed(1)}% (¡ﬂæ”∞™)`,
+            text: `H${boxNumber} ${prediction.Peak_Rate.toFixed(1)}% (Ï§ëÏïôÍ∞í)`,
           })
         }
         midMarkers.push({
@@ -207,7 +207,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
           position: 'belowBar',
           color: CHART_THEME.textMuted,
           shape: 'circle',
-          text: `L${boxNumber} ${prediction.Start_Rate.toFixed(1)}% (¡ﬂæ”∞™)`,
+          text: `L${boxNumber} ${prediction.Start_Rate.toFixed(1)}% (Ï§ëÏïôÍ∞í)`,
         })
 
         if (prediction.Peak_Rate_Hi !== undefined && peakDate) {
@@ -216,7 +216,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
             position: 'aboveBar',
             color: CHART_THEME.success,
             shape: 'arrowDown',
-            text: `H${boxNumber} ${prediction.Peak_Rate_Hi.toFixed(1)}% (+1•Ú)`,
+            text: `H${boxNumber} ${prediction.Peak_Rate_Hi.toFixed(1)}% (+1œÉ)`,
           })
         }
         if (prediction.Peak_Rate_Lo !== undefined && peakDate) {
@@ -225,7 +225,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
             position: 'aboveBar',
             color: CHART_THEME.danger,
             shape: 'arrowDown',
-            text: `H${boxNumber} ${prediction.Peak_Rate_Lo.toFixed(1)}% (-1•Ú)`,
+            text: `H${boxNumber} ${prediction.Peak_Rate_Lo.toFixed(1)}% (-1œÉ)`,
           })
         }
       })
@@ -321,8 +321,8 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
     return (
       <div className="chart-page"><div className="chart-container">
         <ChartLoadingState
-          title="µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¥¬ ¡ﬂ¿‘¥œ¥Ÿ..."
-          message="Bear Market BoxøÕ øπ√¯ ±∏∞£¿ª ¡ÿ∫Ò«œ∞Ì ¿÷Ω¿¥œ¥Ÿ."
+          title="Îç∞Ïù¥ÌÑ∞Î•º Î∂àÎü¨Ïò§Îäî Ï§ëÏûÖÎãàÎã§..."
+          message="Bear Market BoxÏôÄ ÏòàÏ∏° Íµ¨Í∞ÑÏùÑ Ï§ÄÎπÑÌïòÍ≥† ÏûàÏäµÎãàÎã§."
         />
       </div></div>
     )
@@ -332,7 +332,7 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
     return (
       <div className="chart-page"><div className="chart-container">
         <ChartErrorState
-          title="Bear Market Box µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¡ˆ ∏¯«ﬂΩ¿¥œ¥Ÿ."
+          title="Bear Market Box Îç∞Ïù¥ÌÑ∞Î•º Î∂àÎü¨Ïò§ÏßÄ Î™ªÌñàÏäµÎãàÎã§."
           message={error}
         />
       </div></div>
@@ -352,11 +352,11 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
                 Cycle {cycleNumber} ({cycleInfo.startDate}) Bear Market Box
               </h2>
               <p className="chart-description">
-                Rise °√ {config.RISE_THRESHOLD}% | Break &lt; {config.BREAK_THRESHOLD}% | 0~400 Days
+                Rise ‚â• {config.RISE_THRESHOLD}% | Break &lt; {config.BREAK_THRESHOLD}% | 0~400 Days
                 {predictions.length > 0 && (
                   <span className="chart-note-inline">
-                    <span className="chart-note-accent">øπ√¯ ¡ﬂΩ…º± «•Ω√</span>
-                    {similarCycle && <span className="chart-note-violet">¿ØªÁ ªÁ¿Ã≈¨: C{similarCycle}</span>}
+                    <span className="chart-note-accent">ÏòàÏ∏° Ï§ëÏã¨ÏÑ† ÌëúÏãú</span>
+                    {similarCycle && <span className="chart-note-violet">Ïú†ÏÇ¨ ÏÇ¨Ïù¥ÌÅ¥: C{similarCycle}</span>}
                   </span>
                 )}
               </p>
@@ -367,21 +367,21 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
 
           <div className="chart-footer chart-footer-row">
             <span>
-              <strong className="chart-strong-success">π⁄Ω∫:</strong> {boxes.length}∞≥
+              <strong className="chart-strong-success">Î∞ïÏä§:</strong> {boxes.length}Í∞ú
               {predictions.length > 0 && (
                 <>
                   <span className="chart-strong-accent">
-                    &nbsp;+&nbsp;<strong>øπ√¯:</strong> {predictions.length}∞≥
+                    &nbsp;+&nbsp;<strong>ÏòàÏ∏°:</strong> {predictions.length}Í∞ú
                   </span>
                   <span className="chart-note-soft chart-note-inline">
-                    <span className="chart-legend legend-accent"><span className="chart-legend-dot" />¡ﬂæ”∞™</span>
-                    &nbsp;<span className="chart-legend legend-success"><span className="chart-legend-dot" />ªÛ¥‹ πÍµÂ</span>
-                    &nbsp;<span className="chart-legend legend-danger"><span className="chart-legend-dot" />«œ¥‹ πÍµÂ</span>
+                    <span className="chart-legend legend-accent"><span className="chart-legend-dot" />Ï§ëÏïôÍ∞í</span>
+                    &nbsp;<span className="chart-legend legend-success"><span className="chart-legend-dot" />ÏÉÅÎã® Î∞¥Îìú</span>
+                    &nbsp;<span className="chart-legend legend-danger"><span className="chart-legend-dot" />ÌïòÎã® Î∞¥Îìú</span>
                   </span>
                 </>
               )}
               &nbsp;|&nbsp;
-              <strong className="chart-strong-danger">±‚∞£:</strong> 0~400¿œ
+              <strong className="chart-strong-danger">Í∏∞Í∞Ñ:</strong> 0~400Ïùº
             </span>
             <span>Data: Supabase cycle data</span>
           </div>
