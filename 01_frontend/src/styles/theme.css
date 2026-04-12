@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+
+  --color-bg: oklch(0.16 0.012 255);
+  --color-bg-elevated: oklch(0.21 0.015 255);
+  --color-panel: oklch(0.24 0.018 255);
+  --color-panel-strong: oklch(0.28 0.018 255);
+  --color-panel-soft: oklch(0.2 0.012 255);
+  --color-border: oklch(0.34 0.012 255);
+  --color-border-strong: oklch(0.43 0.014 255);
+  --color-text: oklch(0.92 0.01 255);
+  --color-text-muted: oklch(0.73 0.01 255);
+  --color-text-soft: oklch(0.59 0.012 255);
+
+  --color-accent: oklch(0.72 0.13 72);
+  --color-accent-strong: oklch(0.64 0.15 72);
+  --color-accent-soft: oklch(0.3 0.06 72);
+  --color-success: oklch(0.74 0.14 150);
+  --color-danger: oklch(0.66 0.18 25);
+  --color-info: oklch(0.66 0.1 245);
+}

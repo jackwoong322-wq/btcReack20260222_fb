@@ -4,6 +4,8 @@ import CycleComparisonChart from './components/CycleComparisonChart'
 import BearBoxChart from './components/BearBoxChart'
 import BullBoxChart from './components/BullBoxChart'
 import TradingChart from './components/TradingChart'
+import SidebarNavigation from './components/layout/SidebarNavigation'
+import ChartScreenIntro from './components/layout/ChartScreenIntro'
 import { fetchCycleMenu } from './lib/api'
 
 const FALLBACK_BEAR_CYCLES = [
@@ -21,11 +23,11 @@ const FALLBACK_BULL_CYCLES = [
 
 function mapApiCyclesToNav(items, idPrefix) {
   if (!items?.length) return null
-  return items.map((c) => ({
-    id: `${idPrefix}${c.number}`,
-    label: c.label,
-    cycleNumber: c.number,
-    ...(c.current ? { current: true } : {}),
+  return items.map((cycle) => ({
+    id: `${idPrefix}${cycle.number}`,
+    label: cycle.label,
+    cycleNumber: cycle.number,
+    ...(cycle.current ? { current: true } : {}),
   }))
 }
 
@@ -53,26 +55,24 @@ function App() {
   const menuData = useMemo(
     () => ({
       comparison: {
-        title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê',
-        icon: 'üìà',
+        title: 'ªÁ¿Ã≈¨ ∫Ò±≥',
+        icon: 'CP',
         type: 'comparison',
       },
       trading: {
-        title: 'Ìä∏Î†àÏù¥Îî© Î∑∞',
-        icon: 'üìä',
+        title: '∆Æ∑π¿Ãµ˘ ∫‰',
+        icon: 'TV',
         type: 'trading',
       },
       bear: {
-        title: 'ÌïòÎùΩÏû• (0~420Ïùº)',
-        icon: 'üêª',
-        cycles:
-          mapApiCyclesToNav(cycleMenu?.bearCycles, 'bear') || FALLBACK_BEAR_CYCLES,
+        title: '«œ∂Ù¿Â (0~400¿œ)',
+        icon: 'BR',
+        cycles: mapApiCyclesToNav(cycleMenu?.bearCycles, 'bear') || FALLBACK_BEAR_CYCLES,
       },
       bull: {
-        title: 'ÏÉÅÏäπÏû• (420Ïùº~)',
-        icon: 'üêÇ',
-        cycles:
-          mapApiCyclesToNav(cycleMenu?.bullCycles, 'bull') || FALLBACK_BULL_CYCLES,
+        title: 'ªÛΩ¬¿Â (400¿œ~)',
+        icon: 'BL',
+        cycles: mapApiCyclesToNav(cycleMenu?.bullCycles, 'bull') || FALLBACK_BULL_CYCLES,
       },
     }),
     [cycleMenu]
@@ -80,23 +80,25 @@ function App() {
 
   const getSelectedChartInfo = () => {
     if (selectedChart === 'comparison') {
-      return { type: 'comparison', title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê' }
+      return { type: 'comparison', title: 'ªÁ¿Ã≈¨ ∫Ò±≥' }
     }
     if (selectedChart === 'trading') {
-      return { type: 'trading', title: 'Ìä∏Î†àÏù¥Îî© Î∑∞' }
+      return { type: 'trading', title: '∆Æ∑π¿Ãµ˘ ∫‰' }
     }
     for (const section of ['bear', 'bull']) {
-      const found = menuData[section].cycles.find(c => c.id === selectedChart)
+      const found = menuData[section].cycles.find((cycle) => cycle.id === selectedChart)
       if (found) {
-        return { 
-          type: section, 
-          cycleNumber: found.cycleNumber, 
-          title: `${menuData[section].icon} ${found.label}` 
+        return {
+          type: section,
+          cycleNumber: found.cycleNumber,
+          title: `${menuData[section].title} / ${found.label}`,
         }
       }
     }
-    return { type: 'comparison', title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê' }
+    return { type: 'comparison', title: 'ªÁ¿Ã≈¨ ∫Ò±≥' }
   }
+
+  const selectedInfo = getSelectedChartInfo()
 
   const handleMenuClick = (chartId) => {
     setSelectedChart(chartId)
@@ -109,16 +111,15 @@ function App() {
   }
 
   const renderChart = () => {
-    const info = getSelectedChartInfo()
-    switch (info.type) {
+    switch (selectedInfo.type) {
       case 'comparison':
         return <CycleComparisonChart onHeaderContent={setHeaderContent} />
       case 'trading':
         return <TradingChart />
       case 'bear':
-        return <BearBoxChart cycleNumber={info.cycleNumber} />
+        return <BearBoxChart cycleNumber={selectedInfo.cycleNumber} />
       case 'bull':
-        return <BullBoxChart cycleNumber={info.cycleNumber} />
+        return <BullBoxChart cycleNumber={selectedInfo.cycleNumber} />
       default:
         return <CycleComparisonChart onHeaderContent={setHeaderContent} />
     }
@@ -126,110 +127,50 @@ function App() {
 
   return (
     <div className="app-container">
+      <a className="skip-link" href="#main-content">
+        ∫ªπÆ¿∏∑Œ πŸ∑Œ∞°±‚
+      </a>
+
       <header className="app-header">
-        <button 
+        <button
           className="header-btn menu-btn"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Î©îÎâ¥"
-          style={{ pointerEvents: 'auto', flexShrink: 0 }}
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-label={menuOpen ? '∏ﬁ¥∫ ¥›±‚' : '∏ﬁ¥∫ ø≠±‚'}
+          aria-expanded={menuOpen}
+          aria-controls="sidebar-navigation"
         >
-          ‚ò∞
+          NAV
         </button>
-        {headerContent && (
-          <div className="header-slot">
-            {headerContent}
-          </div>
-        )}
+        {headerContent && <div className="header-slot">{headerContent}</div>}
       </header>
 
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <span className="sidebar-logo">üìä</span>
-          <span className="sidebar-title">Bitcoin Cycle</span>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <button
-            className={`nav-item ${selectedChart === 'comparison' ? 'active' : ''}`}
-            onClick={() => handleMenuClick('comparison')}
-          >
-            <span className="nav-icon">{menuData.comparison.icon}</span>
-            <span className="nav-text">{menuData.comparison.title}</span>
-          </button>
-
-          <button
-            className={`nav-item ${selectedChart === 'trading' ? 'active' : ''}`}
-            onClick={() => handleMenuClick('trading')}
-            style={{ background: selectedChart === 'trading' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '' }}
-          >
-            <span className="nav-icon">{menuData.trading.icon}</span>
-            <span className="nav-text">{menuData.trading.title}</span>
-            <span className="new-badge">NEW</span>
-          </button>
-
-          <div className="nav-section">
-            <button 
-              className="nav-section-header"
-              onClick={() => toggleSection('bear')}
-            >
-              <span className="nav-icon">{menuData.bear.icon}</span>
-              <span className="nav-text">{menuData.bear.title}</span>
-              <span className={`nav-arrow ${expandedSection === 'bear' ? 'expanded' : ''}`}>‚ñæ</span>
-            </button>
-            
-            <div className={`nav-section-items ${expandedSection === 'bear' ? 'expanded' : ''}`}>
-              {menuData.bear.cycles.map(cycle => (
-                <button
-                  key={cycle.id}
-                  className={`nav-subitem ${selectedChart === cycle.id ? 'active' : ''}`}
-                  onClick={() => handleMenuClick(cycle.id)}
-                >
-                  <span className="nav-text">
-                    {cycle.label}
-                    {cycle.current && <span className="current-badge">‚≠ê</span>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="nav-section">
-            <button 
-              className="nav-section-header"
-              onClick={() => toggleSection('bull')}
-            >
-              <span className="nav-icon">{menuData.bull.icon}</span>
-              <span className="nav-text">{menuData.bull.title}</span>
-              <span className={`nav-arrow ${expandedSection === 'bull' ? 'expanded' : ''}`}>‚ñæ</span>
-            </button>
-            
-            <div className={`nav-section-items ${expandedSection === 'bull' ? 'expanded' : ''}`}>
-              {menuData.bull.cycles.map(cycle => (
-                <button
-                  key={cycle.id}
-                  className={`nav-subitem ${selectedChart === cycle.id ? 'active' : ''}`}
-                  onClick={() => handleMenuClick(cycle.id)}
-                >
-                  <span className="nav-text">{cycle.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </nav>
-      </div>
+      <SidebarNavigation
+        menuOpen={menuOpen}
+        selectedChart={selectedChart}
+        menuData={menuData}
+        expandedSection={expandedSection}
+        onSelect={handleMenuClick}
+        onToggleSection={toggleSection}
+      />
 
       {menuOpen && (
-        <div 
-          className="overlay" 
+        <button
+          type="button"
+          className="overlay"
+          aria-label="ªÁ¿ÃµÂπŸ ¥›±‚"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
-      <main className="chart-fullscreen">
-        {renderChart()}
+      <main id="main-content" className="chart-fullscreen" tabIndex="-1">
+        <section className="chart-shell">
+          <ChartScreenIntro title={selectedInfo.title} />
+          {renderChart()}
+        </section>
       </main>
     </div>
   )
 }
 
 export default App
+

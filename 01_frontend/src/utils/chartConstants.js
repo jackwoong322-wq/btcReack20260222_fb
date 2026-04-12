@@ -1,16 +1,34 @@
-/**
- * 차트 UI 상수 (Frontend 전용)
- * 비즈니스 로직과 무관한 UI 표시용 상수
- */
-
 export const COLORS = [
-  '#3B82F6', '#10B981', '#EF4444', '#F59E0B',
-  '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
+  '#d8a544',
+  '#6f8fc7',
+  '#90c5a4',
+  '#cf7c62',
+  '#8777c9',
+  '#c98e56',
+  '#5e9db4',
+  '#b4bb74',
 ]
 
-export const COLOR_NAMES = ['blue', 'green', 'red', 'orange', 'purple', 'pink', 'cyan', 'lime']
+export const COLOR_NAMES = ['gold', 'steel', 'mint', 'coral', 'violet', 'amber', 'teal', 'olive']
 
-/** 타임스탬프 → YYYY.MM.DD 포맷 */
+export const CHART_THEME = {
+  background: '#111722',
+  panel: '#171e2b',
+  panelSoft: '#141b27',
+  text: '#edf2fb',
+  textMuted: '#93a0b8',
+  textSoft: '#6d778d',
+  border: '#2a3444',
+  grid: 'rgba(148, 163, 184, 0.12)',
+  crosshair: '#c7d2e4',
+  crosshairLabel: '#263244',
+  accent: '#d8a544',
+  accentSoft: '#7e6740',
+  success: '#73b88d',
+  danger: '#d17d68',
+  info: '#6f8fc7',
+}
+
 export function formatDate(timestamp) {
   if (!timestamp) return ''
   try {

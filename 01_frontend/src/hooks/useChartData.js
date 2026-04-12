@@ -1,37 +1,28 @@
-/**
- * 차트 데이터 훅 (리팩토링 완료)
+/*
+ * Chart data hooks
  *
- * [Before] Frontend → Supabase 직접 → 계산 → 렌더링
- * [After]  Frontend → Backend API → JSON → 렌더링
- *
- * 모든 계산 로직이 Backend로 이동되었으므로
- * 여기서는 순수하게 데이터 fetch + state 관리만 담당
+ * All data shaping and heavy calculation are handled by the backend.
+ * These hooks are responsible only for fetching API responses and
+ * exposing stable loading, error, and data state to the UI.
  */
 import { useState, useEffect } from 'react'
 import {
   fetchCycleComparison,
   fetchBearBoxes,
   fetchBullBoxes,
-  fetchBearPrediction,
 } from '../lib/api'
-
 
 export function useCycleComparisonData() {
   const [series, setSeries] = useState([])
-  const [predictions, setPredictions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [maxDays, setMaxDays] = useState(0)
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true)
         const result = await fetchCycleComparison()
-
         setSeries(result.series || [])
-        setPredictions(result.predictions || [])
-        setMaxDays(result.maxDays || 0)
         setError(null)
       } catch (err) {
         setError(err.message)
@@ -42,9 +33,8 @@ export function useCycleComparisonData() {
     loadData()
   }, [])
 
-  return { series, predictions, loading, error, maxDays }
+  return { series, loading, error }
 }
-
 
 export function useBearBoxData(cycleNumber = 4) {
   const [lineData, setLineData] = useState([])
@@ -78,32 +68,6 @@ export function useBearBoxData(cycleNumber = 4) {
 
   return { lineData, boxes, predictions, loading, error, cycleInfo, config }
 }
-
-
-export function useBearPrediction(cycleNumber = 4) {
-  const [predictions, setPredictions] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true)
-        const result = await fetchBearPrediction(cycleNumber)
-        setPredictions(result.predictions || [])
-        setError(null)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    loadData()
-  }, [cycleNumber])
-
-  return { predictions, loading, error }
-}
-
 
 export function useBullBoxData(cycleNumber = 3) {
   const [lineData, setLineData] = useState([])

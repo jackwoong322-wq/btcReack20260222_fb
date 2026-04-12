@@ -2,23 +2,23 @@ import { useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import { useBearBoxData } from '../hooks/useChartData'
 import { useResizeChart } from '../hooks/useResizeChart'
+import { CHART_THEME } from '../utils/chartConstants'
+import { ChartErrorState, ChartLoadingState } from './ChartStatus'
 import '../styles/Chart.css'
 
 function toDateString(timestamp) {
   if (!timestamp) return null
-  const d = new Date(timestamp)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const date = new Date(timestamp)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 export default function BearBoxChart({ cycleNumber = 4 }) {
   const { lineData, boxes, predictions, loading, error, cycleInfo, config } = useBearBoxData(cycleNumber)
   const containerRef = useRef(null)
-  const chartRef     = useRef(null)
+  const chartRef = useRef(null)
 
-  const resizeLayoutKey =
-    !loading && !error && lineData.length > 0 ? lineData.length : 0
+  const resizeLayoutKey = !loading && !error && lineData.length > 0 ? lineData.length : 0
 
-  /* ResizeObserver 반응형 */
   useResizeChart(containerRef, [chartRef], {
     watchHeight: true,
     layoutKey: resizeLayoutKey,
@@ -28,269 +28,316 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
     if (!containerRef.current || lineData.length === 0) return
 
     const dateToDay = {}
-    lineData.forEach(d => {
-      if (d.timestamp) dateToDay[toDateString(d.timestamp)] = d.day
+    lineData.forEach((item) => {
+      if (item.timestamp) dateToDay[toDateString(item.timestamp)] = item.day
     })
 
-    // 예측 구간 날짜→Day 매핑: 실제 마지막 Day 기준으로 예측 날짜를 Day로 변환
     if (predictions.length > 0 && lineData.length > 0) {
       const lastReal = lineData[lineData.length - 1]
       const lastRealDate = new Date(lastReal.timestamp)
-      const lastRealDay  = lastReal.day
+      const lastRealDay = lastReal.day
 
-      predictions.forEach(pred => {
-        ;[pred.Start_Timestamp, pred.Peak_Timestamp, pred.End_Timestamp].forEach(ts => {
-          if (!ts) return
-          const dateStr = toDateString(ts)
-          if (dateToDay[dateStr] !== undefined) return  // 이미 매핑됨
-          const diffMs  = new Date(ts) - lastRealDate
+      predictions.forEach((prediction) => {
+        ;[prediction.Start_Timestamp, prediction.Peak_Timestamp, prediction.End_Timestamp].forEach((timestamp) => {
+          if (!timestamp) return
+          const dateStr = toDateString(timestamp)
+          if (dateToDay[dateStr] !== undefined) return
+          const diffMs = new Date(timestamp) - lastRealDate
           const diffDay = Math.round(diffMs / (1000 * 60 * 60 * 24))
           dateToDay[dateStr] = lastRealDay + diffDay
         })
       })
     }
 
-    // 날짜 포맷 헬퍼: "2026.07.11 (120일)" 형식
     function formatLabel(dateStr) {
       const day = dateToDay[dateStr]
       const displayDate = dateStr.replace(/-/g, '.')
-      return day !== undefined ? `${displayDate} (${day}일)` : displayDate
+      return day !== undefined ? `${displayDate} (${day}��)` : displayDate
     }
 
-    try { chartRef.current?.remove() } catch (_) {}
+    try {
+      chartRef.current?.remove()
+    } catch (_) {}
     chartRef.current = null
 
     const chart = createChart(containerRef.current, {
-      layout: { background: { color: '#0B0E11' }, textColor: '#848E9C' },
+      layout: { background: { color: CHART_THEME.background }, textColor: CHART_THEME.textMuted },
       grid: {
-        vertLines: { color: '#1C2127' },
-        horzLines: { color: '#1C2127' },
+        vertLines: { color: CHART_THEME.grid },
+        horzLines: { color: CHART_THEME.grid },
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: '#758696', width: 1, style: 3, labelBackgroundColor: '#2B3139' },
-        horzLine: { color: '#758696', width: 1, style: 3, labelBackgroundColor: '#2B3139' },
+        vertLine: { color: CHART_THEME.crosshair, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
+        horzLine: { color: CHART_THEME.crosshair, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
       },
-      rightPriceScale: { borderColor: '#2B3139' },
-      timeScale: { 
-        borderColor: '#2B3139', 
+      rightPriceScale: { borderColor: CHART_THEME.border },
+      timeScale: {
+        borderColor: CHART_THEME.border,
         timeVisible: false,
         rightOffset: 5,
         fixLeftEdge: false,
         fixRightEdge: false,
       },
       localization: {
-        timeFormatter: (ts) => {
-          const dateStr = typeof ts === 'string'
-            ? ts
-            : toDateString(new Date(ts * 1000).toISOString())
+        timeFormatter: (timestamp) => {
+          const dateStr = typeof timestamp === 'string'
+            ? timestamp
+            : toDateString(new Date(timestamp * 1000).toISOString())
           return formatLabel(dateStr)
         },
       },
       handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
       handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-      width:  containerRef.current.clientWidth  || 360,
+      width: containerRef.current.clientWidth || 360,
       height: containerRef.current.clientHeight || 500,
     })
     chartRef.current = chart
 
-    // ── 실제 데이터 선 (파란 실선) ──────────────────────────────
     const lineSeries = chart.addLineSeries({
-      color: '#3B82F6', lineWidth: 2,
-      priceLineVisible: false, lastValueVisible: false,
+      color: CHART_THEME.info,
+      lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: false,
     })
+
     const chartData = lineData
-      .filter(d => d.timestamp)
-      .map(d => ({ time: toDateString(d.timestamp), value: d.value }))
-      .filter(d => d.time)
-
-    // x축 확장: null/undefined 패딩 제거, rightOffset으로 처리
-
+      .filter((item) => item.timestamp)
+      .map((item) => ({ time: toDateString(item.timestamp), value: item.value }))
+      .filter((item) => item.time)
 
     lineSeries.setData(chartData)
 
-    // ── 실제 박스: 수평선 대신 마커만 메인 라인에 표시 ──────────
     const boxMarkers = []
     boxes.forEach((box, idx) => {
       const startDate = toDateString(box.Start_Timestamp)
-      const peakDate  = toDateString(box.Peak_Timestamp)
+      const peakDate = toDateString(box.Peak_Timestamp)
       if (!startDate) return
 
-      const prevBox          = idx > 0 ? boxes[idx - 1] : null
-      const prevPeakRate     = prevBox ? prevBox.Peak_Rate : 100
+      const prevBox = idx > 0 ? boxes[idx - 1] : null
+      const prevPeakRate = prevBox ? prevBox.Peak_Rate : 100
       const dropFromPrevHigh = ((prevPeakRate - box.Start_Rate) / prevPeakRate * 100).toFixed(1)
-      const riseFromPrevLow  = ((box.Peak_Rate - box.Start_Rate) / box.Start_Rate * 100).toFixed(1)
+      const riseFromPrevLow = ((box.Peak_Rate - box.Start_Rate) / box.Start_Rate * 100).toFixed(1)
 
       if (peakDate) {
         boxMarkers.push({
-          time: peakDate, position: 'aboveBar', color: '#F6465D', shape: 'arrowDown',
-          text: `H${idx + 1} ${box.Peak_Rate.toFixed(1)}% ↑${riseFromPrevLow}%`,
+          time: peakDate,
+          position: 'aboveBar',
+          color: CHART_THEME.danger,
+          shape: 'arrowDown',
+          text: `H${idx + 1} ${box.Peak_Rate.toFixed(1)}% (+${riseFromPrevLow}%)`,
         })
       }
       boxMarkers.push({
-        time: startDate, position: 'belowBar', color: '#0ECB81', shape: 'circle',
-        text: `L${idx + 1} ${box.Start_Rate.toFixed(1)}% ↓${dropFromPrevHigh}%`,
+        time: startDate,
+        position: 'belowBar',
+        color: CHART_THEME.success,
+        shape: 'circle',
+        text: `L${idx + 1} ${box.Start_Rate.toFixed(1)}% (-${dropFromPrevHigh}%)`,
       })
     })
+
     if (boxMarkers.length > 0) {
       boxMarkers.sort((a, b) => a.time.localeCompare(b.time))
       lineSeries.setMarkers(boxMarkers)
     }
 
-    // ── 예측 박스 (최신 사이클에서만 API가 predictions 제공) ─────
     if (predictions.length > 0) {
-
-      const addDays = (dateStr, n) => {
-        const d = new Date(dateStr)
-        d.setDate(d.getDate() + n)
-        return toDateString(d.toISOString())
-      }
-
-      // 예측 박스를 일별 보간 데이터로 변환
-      // 실제선 마지막값 → 첫 저점 → 고점 → 저점 → ... 순서로 매일 1포인트
-      const buildDailyPredPath = (startTime, startValue, getVals) => {
-        const pts = [{ time: startTime, value: startValue }]  // 실제선 마지막점 포함
-        let lastDate  = new Date(startTime)
+      const buildDailyPredPath = (startTime, startValue, getValues) => {
+        const points = [{ time: startTime, value: startValue }]
+        let lastDate = new Date(startTime)
         let lastValue = startValue
 
-        predictions.forEach((pred, i) => {
-          const v = getVals(pred)
-          if (!v) return
+        predictions.forEach((prediction, index) => {
+          const values = getValues(prediction)
+          if (!values) return
 
-          const segments = i === 0
+          const segments = index === 0
             ? [
-                { toDate: new Date(v.s),  toValue: v.L },  // 실제 마지막→첫 저점
-                { toDate: new Date(v.pk), toValue: v.H },  // 저점→고점
-                { toDate: new Date(v.e),  toValue: v.L },  // 고점→저점
+                { toDate: new Date(values.s), toValue: values.L },
+                { toDate: new Date(values.pk), toValue: values.H },
+                { toDate: new Date(values.e), toValue: values.L },
               ]
             : [
-                { toDate: new Date(v.pk), toValue: v.H },  // 이전 저점→고점
-                { toDate: new Date(v.e),  toValue: v.L },  // 고점→저점
+                { toDate: new Date(values.pk), toValue: values.H },
+                { toDate: new Date(values.e), toValue: values.L },
               ]
 
-          segments.forEach(seg => {
-            const days = Math.round((seg.toDate - lastDate) / 86400000)
+          segments.forEach((segment) => {
+            const days = Math.round((segment.toDate - lastDate) / 86400000)
             if (days <= 0) return
-            for (let j = 1; j <= days; j++) {
-              const t = new Date(lastDate)
-              t.setDate(t.getDate() + j)
-              const ratio = j / days
-              const value = Math.round((lastValue + (seg.toValue - lastValue) * ratio) * 100) / 100
-              pts.push({ time: toDateString(t.toISOString()), value })
+            for (let step = 1; step <= days; step++) {
+              const nextDate = new Date(lastDate)
+              nextDate.setDate(nextDate.getDate() + step)
+              const ratio = step / days
+              const value = Math.round((lastValue + (segment.toValue - lastValue) * ratio) * 100) / 100
+              points.push({ time: toDateString(nextDate.toISOString()), value })
             }
-            lastDate  = new Date(seg.toDate)
-            lastValue = seg.toValue
+            lastDate = new Date(segment.toDate)
+            lastValue = segment.toValue
           })
         })
-        return pts
+
+        return points
       }
 
-      const day0 = chartData[chartData.length - 1]
-      if (!day0) return
+      const basePoint = chartData[chartData.length - 1]
+      if (!basePoint) return
 
       const midMarkers = []
-      const hiMarkers  = []
-      const loMarkers  = []
+      const hiMarkers = []
+      const loMarkers = []
 
-      predictions.forEach((pred, idx) => {
-        const startDate = toDateString(pred.Start_Timestamp)
-        const peakDate  = toDateString(pred.Peak_Timestamp)
-        const boxNum = boxes.length + idx + 1
+      predictions.forEach((prediction, idx) => {
+        const startDate = toDateString(prediction.Start_Timestamp)
+        const peakDate = toDateString(prediction.Peak_Timestamp)
+        const boxNumber = boxes.length + idx + 1
+
         if (peakDate) {
-          midMarkers.push({ time: peakDate, position: 'aboveBar', color: '#F59E0B', shape: 'arrowDown',
-            text: `H${boxNum}? ${pred.Peak_Rate.toFixed(1)}% (ES)` })
+          midMarkers.push({
+            time: peakDate,
+            position: 'aboveBar',
+            color: CHART_THEME.accent,
+            shape: 'arrowDown',
+            text: `H${boxNumber} ${prediction.Peak_Rate.toFixed(1)}% (�߾Ӱ�)`,
+          })
         }
-        midMarkers.push({ time: startDate, position: 'belowBar', color: '#9CA3AF', shape: 'circle',
-          text: `L${boxNum}? ${pred.Start_Rate.toFixed(1)}% (ES)` })
-        if (pred.Peak_Rate_Hi !== undefined && peakDate) {
-          hiMarkers.push({ time: peakDate, position: 'aboveBar', color: '#10B981', shape: 'arrowDown',
-            text: `H${boxNum}? ${pred.Peak_Rate_Hi.toFixed(1)}% (+1σ)` })
+        midMarkers.push({
+          time: startDate,
+          position: 'belowBar',
+          color: CHART_THEME.textMuted,
+          shape: 'circle',
+          text: `L${boxNumber} ${prediction.Start_Rate.toFixed(1)}% (�߾Ӱ�)`,
+        })
+
+        if (prediction.Peak_Rate_Hi !== undefined && peakDate) {
+          hiMarkers.push({
+            time: peakDate,
+            position: 'aboveBar',
+            color: CHART_THEME.success,
+            shape: 'arrowDown',
+            text: `H${boxNumber} ${prediction.Peak_Rate_Hi.toFixed(1)}% (+1��)`,
+          })
         }
-        if (pred.Peak_Rate_Lo !== undefined && peakDate) {
-          loMarkers.push({ time: peakDate, position: 'aboveBar', color: '#F6465D', shape: 'arrowDown',
-            text: `H${boxNum}? ${pred.Peak_Rate_Lo.toFixed(1)}% (-1σ)` })
+        if (prediction.Peak_Rate_Lo !== undefined && peakDate) {
+          loMarkers.push({
+            time: peakDate,
+            position: 'aboveBar',
+            color: CHART_THEME.danger,
+            shape: 'arrowDown',
+            text: `H${boxNumber} ${prediction.Peak_Rate_Lo.toFixed(1)}% (-1��)`,
+          })
         }
       })
 
-      const sortMarkers = (ms) => ms.sort((a, b) => a.time.localeCompare(b.time))
+      const sortMarkers = (markers) => markers.sort((a, b) => a.time.localeCompare(b.time))
 
-      // ── 주황 중앙선: 일별 보간 ──
-      const midPath = buildDailyPredPath(day0.time, day0.value, pred => ({
-        s: pred.Start_Timestamp, pk: pred.Peak_Timestamp, e: pred.End_Timestamp,
-        L: pred.Start_Rate, H: pred.Peak_Rate,
+      const midPath = buildDailyPredPath(basePoint.time, basePoint.value, (prediction) => ({
+        s: prediction.Start_Timestamp,
+        pk: prediction.Peak_Timestamp,
+        e: prediction.End_Timestamp,
+        L: prediction.Start_Rate,
+        H: prediction.Peak_Rate,
       }))
       if (midPath.length > 1) {
         const midSeries = chart.addLineSeries({
-          color: '#F59E0B', lineWidth: 2, lineStyle: 2,
-          priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+          color: CHART_THEME.accent,
+          lineWidth: 2,
+          lineStyle: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
         })
         midSeries.setData(midPath)
         if (midMarkers.length > 0) midSeries.setMarkers(sortMarkers(midMarkers))
       }
 
-      // ── 초록 낙관선: 일별 보간 ──
-      const hiPath = buildDailyPredPath(day0.time, day0.value, pred => {
-        if (pred.Peak_Rate_Hi === undefined) return null
+      const hiPath = buildDailyPredPath(basePoint.time, basePoint.value, (prediction) => {
+        if (prediction.Peak_Rate_Hi === undefined) return null
         return {
-          s: pred.Start_Timestamp, pk: pred.Peak_Timestamp, e: pred.End_Timestamp,
-          L: pred.Start_Rate_Hi, H: pred.Peak_Rate_Hi,
+          s: prediction.Start_Timestamp,
+          pk: prediction.Peak_Timestamp,
+          e: prediction.End_Timestamp,
+          L: prediction.Start_Rate_Hi,
+          H: prediction.Peak_Rate_Hi,
         }
       })
       if (hiPath.length > 1) {
         const hiSeries = chart.addLineSeries({
-          color: '#10B981', lineWidth: 1.5, lineStyle: 2,
-          priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+          color: CHART_THEME.success,
+          lineWidth: 1.5,
+          lineStyle: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
         })
         hiSeries.setData(hiPath)
         if (hiMarkers.length > 0) hiSeries.setMarkers(sortMarkers(hiMarkers))
       }
 
-      // ── 빨강 비관선: 일별 보간 ──
-      const loPath = buildDailyPredPath(day0.time, day0.value, pred => {
-        if (pred.Peak_Rate_Lo === undefined) return null
+      const loPath = buildDailyPredPath(basePoint.time, basePoint.value, (prediction) => {
+        if (prediction.Peak_Rate_Lo === undefined) return null
         return {
-          s: pred.Start_Timestamp, pk: pred.Peak_Timestamp, e: pred.End_Timestamp,
-          L: pred.Start_Rate_Lo, H: pred.Peak_Rate_Lo,
+          s: prediction.Start_Timestamp,
+          pk: prediction.Peak_Timestamp,
+          e: prediction.End_Timestamp,
+          L: prediction.Start_Rate_Lo,
+          H: prediction.Peak_Rate_Lo,
         }
       })
       if (loPath.length > 1) {
         const loSeries = chart.addLineSeries({
-          color: '#F6465D', lineWidth: 1.5, lineStyle: 2,
-          priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
+          color: CHART_THEME.danger,
+          lineWidth: 1.5,
+          lineStyle: 2,
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
         })
         loSeries.setData(loPath)
         if (loMarkers.length > 0) loSeries.setMarkers(sortMarkers(loMarkers))
       }
     }
 
-    // 초기 뷰: 전체 fitContent 후 예측 끝날짜까지 x축 포함
     chart.timeScale().fitContent()
     if (predictions.length > 0 && chartData.length > 0) {
-      const lastPred     = predictions[predictions.length - 1]
-      const lastPredDate = toDateString(lastPred.End_Timestamp)
-      const firstDate    = chartData[0].time
-      if (firstDate && lastPredDate) {
-        chart.timeScale().setVisibleRange({ from: firstDate, to: lastPredDate })
+      const lastPrediction = predictions[predictions.length - 1]
+      const lastPredictionDate = toDateString(lastPrediction.End_Timestamp)
+      const firstDate = chartData[0].time
+      if (firstDate && lastPredictionDate) {
+        chart.timeScale().setVisibleRange({ from: firstDate, to: lastPredictionDate })
       }
     }
 
     return () => {
-      try { chartRef.current?.remove() } catch (_) {}
+      try {
+        chartRef.current?.remove()
+      } catch (_) {}
       chartRef.current = null
     }
   }, [lineData, boxes, predictions])
 
-  if (loading) return (
-    <div className="chart-page"><div className="chart-container">
-      <div className="loading-container">데이터 로딩 중...</div>
-    </div></div>
-  )
+  if (loading) {
+    return (
+      <div className="chart-page"><div className="chart-container">
+        <ChartLoadingState
+          title="�����͸� �ҷ����� ���Դϴ�..."
+          message="Bear Market Box�� ���� ������ �غ��ϰ� �ֽ��ϴ�."
+        />
+      </div></div>
+    )
+  }
 
-  if (error) return (
-    <div className="chart-page"><div className="chart-container">
-      <div className="error-container">오류: {error}</div>
-    </div></div>
-  )
+  if (error) {
+    return (
+      <div className="chart-page"><div className="chart-container">
+        <ChartErrorState
+          title="Bear Market Box �����͸� �ҷ����� ���߽��ϴ�."
+          message={error}
+        />
+      </div></div>
+    )
+  }
 
   const similarCycle = predictions[0]?.similarCycle
 
@@ -299,49 +346,42 @@ export default function BearBoxChart({ cycleNumber = 4 }) {
       <div className="chart-container">
         <div className="chart-wrapper">
           <div className="chart-header">
-            <div>
+            <div className="chart-meta">
+              <span className="chart-eyebrow">Bear Box</span>
               <h2 className="chart-title">
-                🐻 Cycle {cycleNumber} ({cycleInfo.startDate}) — Bear Market Box
+                Cycle {cycleNumber} ({cycleInfo.startDate}) Bear Market Box
               </h2>
-              <p style={{ color: '#848E9C', margin: '4px 0 0', fontSize: '12px' }}>
-                Rise ≥{config.RISE_THRESHOLD}% | Break &lt;{config.BREAK_THRESHOLD}% | 0~400 Days
+              <p className="chart-description">
+                Rise �� {config.RISE_THRESHOLD}% | Break &lt; {config.BREAK_THRESHOLD}% | 0~400 Days
                 {predictions.length > 0 && (
-                  <span style={{ marginLeft: 8 }}>
-                    <span style={{ color: '#F59E0B' }}>┆ 🔮 지수평활 예측 (α=0.4)</span>
-                    {similarCycle && (
-                      <span style={{ color: '#A78BFA', marginLeft: 6 }}>
-                        ┆ 📐 C{similarCycle}과 가장 유사
-                      </span>
-                    )}
+                  <span className="chart-note-inline">
+                    <span className="chart-note-accent">���� �߽ɼ� ǥ��</span>
+                    {similarCycle && <span className="chart-note-violet">���� ����Ŭ: C{similarCycle}</span>}
                   </span>
                 )}
               </p>
             </div>
           </div>
 
-          <div
-            ref={containerRef}
-            className="chart-area"
-            style={{ flex: 1, minHeight: 0, width: '100%' }}
-          />
+          <div ref={containerRef} className="chart-area chart-area-fill" />
 
-          <div className="chart-footer" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+          <div className="chart-footer chart-footer-row">
             <span>
-              <strong style={{ color: '#0ECB81' }}>박스: </strong>{boxes.length}개
+              <strong className="chart-strong-success">�ڽ�:</strong> {boxes.length}��
               {predictions.length > 0 && (
                 <>
-                  <span style={{ color: '#F59E0B' }}>
-                    &nbsp;+&nbsp;<strong>예측: </strong>{predictions.length}개
+                  <span className="chart-strong-accent">
+                    &nbsp;+&nbsp;<strong>����:</strong> {predictions.length}��
                   </span>
-                  <span style={{ color: '#848E9C', marginLeft: 8 }}>
-                    ─ <span style={{ color: '#F59E0B' }}>주황</span>:ES중앙
-                    &nbsp;<span style={{ color: '#10B981' }}>초록</span>:낙관(+1σ)
-                    &nbsp;<span style={{ color: '#F6465D' }}>빨강</span>:비관(-1σ)
+                  <span className="chart-note-soft chart-note-inline">
+                    <span className="chart-legend legend-accent"><span className="chart-legend-dot" />�߾Ӱ�</span>
+                    &nbsp;<span className="chart-legend legend-success"><span className="chart-legend-dot" />��� ���</span>
+                    &nbsp;<span className="chart-legend legend-danger"><span className="chart-legend-dot" />�ϴ� ���</span>
                   </span>
                 </>
               )}
               &nbsp;|&nbsp;
-              <strong style={{ color: '#F6465D' }}>기간: </strong>0~400일
+              <strong className="chart-strong-danger">�Ⱓ:</strong> 0~400��
             </span>
             <span>Data: Supabase cycle data</span>
           </div>

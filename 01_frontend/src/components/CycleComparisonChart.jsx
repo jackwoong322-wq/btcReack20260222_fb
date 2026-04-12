@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { createChart } from 'lightweight-charts'
 import { useCycleComparisonData } from '../hooks/useChartData'
-import { COLORS, COLOR_NAMES } from '../utils/chartConstants'
+import { CHART_THEME, COLORS, COLOR_NAMES } from '../utils/chartConstants'
 import { useResizeChart } from '../hooks/useResizeChart'
+import { ChartErrorState, ChartLoadingState } from './ChartStatus'
 import '../styles/Chart.css'
 
 function dayToDateString(day) {
@@ -14,46 +15,43 @@ function dayToDateString(day) {
 export default function CycleComparisonChart({ onHeaderContent }) {
   const { series, loading, error } = useCycleComparisonData()
   const containerRef = useRef(null)
-  const chartRef     = useRef(null)
-  const seriesRefs   = useRef({})
+  const chartRef = useRef(null)
   const [hiddenSeries, setHiddenSeries] = useState(new Set())
 
-  const resizeLayoutKey =
-    !loading && !error && series.length > 0 ? series.length : 0
+  const resizeLayoutKey = !loading && !error && series.length > 0 ? series.length : 0
 
-  /* ResizeObserver Î∞òÏùëÌòï ‚Äî width & height Î™®Îëê Í∞êÏãú */
   useResizeChart(containerRef, [chartRef], {
     watchHeight: true,
     layoutKey: resizeLayoutKey,
   })
 
-  // Ìó§Îçî Ïä¨Î°ØÏóê ÌÉÄÏù¥ÌãÄ + ÏÇ¨Ïù¥ÌÅ¥ Ïπ¥Îìú Ïò¨Î¶¨Í∏∞
-  useEffect(() => {
-    if (!onHeaderContent) return
-    if (series.length === 0) return
+  const toggleSeries = (name) => {
+    setHiddenSeries((prev) => {
+      const next = new Set(prev)
+      next.has(name) ? next.delete(name) : next.add(name)
+      return next
+    })
+  }
 
-    // Í∑∏ÎûòÌîÑ ÏÉâÍ≥º ÎèôÏùºÌïú ÏÉâÏÉÅ Î∞∞Ïó¥ (COLORSÏôÄ ÎèôÏùº ÏàúÏÑú)
-    const colorHex = COLORS  // ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', ...]
+  useEffect(() => {
+    if (!onHeaderContent || series.length === 0) return
 
     onHeaderContent(
       <>
         <span className="header-slot-title">Bitcoin Cycles Comparison</span>
-        <span className="header-slot-sub">| Days Since Peak</span>
-        {series.map((s, idx) => (
+        <span className="header-slot-sub">Days since peak</span>
+        {series.map((item, idx) => (
           <div
-            key={s.name}
-            className={`header-stat-card ${hiddenSeries.has(s.name) ? 'inactive' : ''}`}
-            onClick={() => toggleSeries(s.name)}
+            key={item.name}
+            className={`header-stat-card ${hiddenSeries.has(item.name) ? 'inactive' : ''}`}
+            onClick={() => toggleSeries(item.name)}
           >
-            <span
-              className="header-stat-label"
-              style={{ color: colorHex[idx % colorHex.length] }}
-            >
-              C{idx + 1}:{s.startDate}
+            <span className={`header-stat-label tone-${COLOR_NAMES[idx % COLOR_NAMES.length]}`}>
+              C{idx + 1}: {item.startDate}
             </span>
             <span className="header-stat-value">
-              <span>{s.minRate.toFixed(1)}%</span>
-              <span>{s.dayCount}d</span>
+              <span>{item.minRate.toFixed(1)}%</span>
+              <span>{item.dayCount}d</span>
             </span>
           </div>
         ))}
@@ -61,33 +59,35 @@ export default function CycleComparisonChart({ onHeaderContent }) {
     )
   }, [series, hiddenSeries, onHeaderContent])
 
-  // Ïñ∏ÎßàÏö¥Ìä∏ Ïãú Ìó§Îçî Ïä¨Î°Ø ÎπÑÏö∞Í∏∞
   useEffect(() => {
-    return () => { if (onHeaderContent) onHeaderContent(null) }
+    return () => {
+      if (onHeaderContent) onHeaderContent(null)
+    }
   }, [onHeaderContent])
 
   useEffect(() => {
     if (!containerRef.current || series.length === 0) return
 
-    try { chartRef.current?.remove() } catch (_) {}
+    try {
+      chartRef.current?.remove()
+    } catch (_) {}
     chartRef.current = null
-    seriesRefs.current = {}
 
     const chart = createChart(containerRef.current, {
-      layout: { background: { color: 'transparent' }, textColor: '#94A3B8' },
+      layout: { background: { color: 'transparent' }, textColor: CHART_THEME.textMuted },
       grid: {
-        vertLines: { color: 'rgba(255,255,255,0.08)', style: 1 },
-        horzLines: { color: 'rgba(255,255,255,0.08)', style: 1 },
+        vertLines: { color: CHART_THEME.grid, style: 1 },
+        horzLines: { color: CHART_THEME.grid, style: 1 },
       },
       crosshair: {
         mode: 1,
-        vertLine: { color: '#F59E0B', width: 1, style: 3, labelBackgroundColor: '#1E293B' },
-        horzLine: { color: '#F59E0B', width: 1, style: 3, labelBackgroundColor: '#1E293B' },
+        vertLine: { color: CHART_THEME.accent, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
+        horzLine: { color: CHART_THEME.accent, width: 1, style: 3, labelBackgroundColor: CHART_THEME.crosshairLabel },
       },
-      rightPriceScale: { borderColor: 'rgba(255,255,255,0.1)', textColor: '#94A3B8' },
+      rightPriceScale: { borderColor: CHART_THEME.border, textColor: CHART_THEME.textMuted },
       timeScale: {
-        borderColor: '#2B3139',
-        textColor: '#848E9C',
+        borderColor: CHART_THEME.border,
+        textColor: CHART_THEME.textMuted,
         timeVisible: false,
         tickMarkFormatter: (time) => {
           const diff = Math.round((new Date(time) - new Date(2000, 0, 1)) / 86400000)
@@ -102,98 +102,105 @@ export default function CycleComparisonChart({ onHeaderContent }) {
       },
       handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
       handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-      width:  containerRef.current.clientWidth  || 360,
+      width: containerRef.current.clientWidth || 360,
       height: containerRef.current.clientHeight || 400,
     })
     chartRef.current = chart
 
-    /* Í∏∞Ï§ÄÏÑ† */
-    ;[100, 50, 25].forEach((val, i) => {
-      const s = chart.addLineSeries({
-        color: i === 0 ? '#64748B' : 'rgba(148,163,184,0.3)',
-        lineWidth: i === 0 ? 2 : 1,
+    ;[100, 50, 25].forEach((value, index) => {
+      const baselineSeries = chart.addLineSeries({
+        color: index === 0 ? CHART_THEME.textSoft : 'rgba(148, 163, 184, 0.28)',
+        lineWidth: index === 0 ? 2 : 1,
         lineStyle: 2,
         priceLineVisible: false,
         lastValueVisible: false,
         crosshairMarkerVisible: false,
       })
-      s.setData([
-        { time: dayToDateString(0),    value: val },
-        { time: dayToDateString(1500), value: val },
+      baselineSeries.setData([
+        { time: dayToDateString(0), value },
+        { time: dayToDateString(1500), value },
       ])
     })
 
-    /* ÏÇ¨Ïù¥ÌÅ¥ ÏãúÎ¶¨Ï¶à */
-    series.forEach((s, idx) => {
-      if (hiddenSeries.has(s.name)) return
-      const ls = chart.addLineSeries({
-        color: COLORS[idx % COLORS.length],
+    series.forEach((item, idx) => {
+      if (hiddenSeries.has(item.name)) return
+      const color = COLORS[idx % COLORS.length]
+      const lineSeries = chart.addLineSeries({
+        color,
         lineWidth: 2.5,
-        title: s.name,
+        title: item.name,
       })
-      ls.setData(s.data.map(pt => ({ time: dayToDateString(pt.x), value: pt.y })))
-      ls.createPriceLine({
-        price: s.minRate,
-        color: COLORS[idx % COLORS.length],
+      lineSeries.setData(item.data.map((point) => ({ time: dayToDateString(point.x), value: point.y })))
+      lineSeries.createPriceLine({
+        price: item.minRate,
+        color,
         lineWidth: 1.5,
         lineStyle: 2,
         axisLabelVisible: true,
-        title: `C${idx + 1} Min (${s.minRate.toFixed(1)}%)`,
+        title: `C${idx + 1} Min (${item.minRate.toFixed(1)}%)`,
       })
-      seriesRefs.current[s.name] = ls
     })
 
     chart.timeScale().setVisibleRange({
       from: dayToDateString(0),
-      to:   dayToDateString(900),
+      to: dayToDateString(900),
     })
 
     return () => {
-      try { chartRef.current?.remove() } catch (_) {}
+      try {
+        chartRef.current?.remove()
+      } catch (_) {}
       chartRef.current = null
     }
   }, [series, hiddenSeries])
 
-  const toggleSeries = (name) => {
-    setHiddenSeries(prev => {
-      const next = new Set(prev)
-      next.has(name) ? next.delete(name) : next.add(name)
-      return next
-    })
+  if (loading) {
+    return (
+      <div className="chart-page">
+        <div className="chart-container">
+          <div className="chart-wrapper">
+            <ChartLoadingState
+              title="µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¥¬ ¡ﬂ¿‘¥œ¥Ÿ..."
+              message="ªÁ¿Ã≈¨ ∫Ò±≥ ±∏∞£∞˙ «œ∂Ù∑¸ µ•¿Ã≈Õ∏¶ ¡ÿ∫Ò«œ∞Ì ¿÷Ω¿¥œ¥Ÿ."
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  const resetView = () => {
-    chartRef.current?.timeScale().setVisibleRange({
-      from: dayToDateString(0),
-      to:   dayToDateString(900),
-    })
+  if (error) {
+    return (
+      <div className="chart-page">
+        <div className="chart-container">
+          <div className="chart-wrapper">
+            <ChartErrorState
+              title="ªÁ¿Ã≈¨ ∫Ò±≥ µ•¿Ã≈Õ∏¶ ∫“∑Øø¿¡ˆ ∏¯«ﬂΩ¿¥œ¥Ÿ."
+              message={error}
+            />
+          </div>
+        </div>
+      </div>
+    )
   }
-
-  if (loading) return (
-    <div className="chart-page"><div className="chart-container"><div className="chart-wrapper">
-      <div className="loading-container">Îç∞Ïù¥ÌÑ∞ Î°úÎî© Ï§ë...</div>
-    </div></div></div>
-  )
-
-  if (error) return (
-    <div className="chart-page"><div className="chart-container"><div className="chart-wrapper">
-      <div className="error-container">Ïò§Î•ò: {error}</div>
-    </div></div></div>
-  )
 
   return (
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
+          <div className="chart-header">
+            <div className="chart-meta">
+              <span className="chart-eyebrow">Cycle Comparison</span>
+              <h2 className="chart-title">∫Ò∆Æƒ⁄¿Œ ªÁ¿Ã≈¨ «œ∂Ù∑¸ ∫Ò±≥</h2>
+              <p className="chart-description">
+                ∞¢ ªÁ¿Ã≈¨¿« ∞Ì¡° ¿Ã»ƒ ≥´∆¯∞˙ »∏∫π »Â∏ß¿ª ∞∞¿∫ √‡ø°º≠ ∞„√ƒ ¿ØªÁ ±∏∞£¿ª ∫¸∏£∞‘ ¿–Ω¿¥œ¥Ÿ.
+              </p>
+            </div>
+          </div>
 
-          {/* Ï∞®Ìä∏ ‚Äî Ìó§Îçî Ï†úÍ±∞Î°ú Ï†ÑÏ≤¥ Í≥µÍ∞Ñ ÏÇ¨Ïö© */}
-          <div
-            ref={containerRef}
-            className="chart-area"
-            style={{ flex: 1, minHeight: 250 }}
-          />
+          <div ref={containerRef} className="chart-area chart-area-compact" />
 
-          <div className="chart-footer" style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 4 }}>
+          <div className="chart-footer chart-footer-row">
             <span>Data source: Supabase BTC/USDT OHLCV</span>
           </div>
         </div>
@@ -201,3 +208,4 @@ export default function CycleComparisonChart({ onHeaderContent }) {
     </div>
   )
 }
+

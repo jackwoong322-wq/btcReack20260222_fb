@@ -1,6 +1,8 @@
-/**
- * Backend API 클라이언트
- * 기존 supabase.js를 대체 — 모든 데이터를 Backend API를 통해 조회
+/*
+ * Backend API client
+ *
+ * The frontend reads all chart data through the backend API rather than
+ * talking directly to Supabase from the browser.
  */
 
 function formatApiDetail(detail) {
@@ -13,11 +15,11 @@ function formatApiDetail(detail) {
   }
 }
 
-/**
- * API 베이스 URL
- * - `vite` 개발 모드(DEV)에서는 VITE_API_URL(Render 등)을 쓰지 않고 로컬 백엔드를 쓴다.
- *   (그렇지 않으면 메뉴가 원격 DB 기준으로 사이클 2개만 나오는 식으로 어긋난다.)
- * - 개발 중 원격 API만 쓰려면 .env 에 VITE_API_LOCAL_URL=https://...
+/*
+ * API base URL rules
+ * - In local Vite dev, prefer `VITE_API_LOCAL_URL` and fall back to the
+ *   local backend server.
+ * - In deployed frontend environments, prefer `VITE_API_URL`.
  */
 function resolveApiBaseUrl() {
   const envUrl = import.meta.env.VITE_API_URL
@@ -44,46 +46,34 @@ async function apiFetch(path, params = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    const msg = formatApiDetail(errorData.detail) || `API 오류: ${response.status}`
+    const msg = formatApiDetail(errorData.detail) || `API error: ${response.status}`
     throw new Error(msg)
   }
 
   return response.json()
 }
 
-// ─── API 함수들 ──────────────────────────────────────
-
-/** 사이클 비교 차트 데이터 + 예측 */
+/* Cycle comparison chart data */
 export async function fetchCycleComparison() {
   return apiFetch('/api/cycle-comparison')
 }
 
-/** Bear 박스권 + 라인 데이터 + 예측 */
+/* Bear box data and predictions */
 export async function fetchBearBoxes(cycleNumber = 4) {
   return apiFetch('/api/bear-boxes', { cycle: cycleNumber })
 }
 
-/** Bull 박스권 + 라인 데이터 */
+/* Bull box data */
 export async function fetchBullBoxes(cycleNumber = 3) {
   return apiFetch('/api/bull-boxes', { cycle: cycleNumber })
 }
 
-/** Bear 예측만 별도 조회 */
-export async function fetchBearPrediction(cycleNumber = 4) {
-  return apiFetch('/api/bear-prediction', { cycle: cycleNumber })
-}
-
-/** OHLCV 데이터 (트레이딩 차트) */
+/* OHLCV data for the trading chart */
 export async function fetchOhlcvData() {
   return apiFetch('/api/ohlcv')
 }
 
-/** 설정값 조회 */
-export async function fetchConfig() {
-  return apiFetch('/api/config')
-}
-
-/** 사이드바 Bear/Bull 메뉴용 사이클 목록 (DB 기준) */
+/* Sidebar cycle list for Bear/Bull navigation */
 export async function fetchCycleMenu() {
   return apiFetch('/api/cycle-menu')
 }
