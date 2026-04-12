@@ -326,28 +326,25 @@ export default function TradingChart() {
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
-          <div className="chart-header">
-            <div className="chart-meta">
-              <span className="chart-eyebrow">Market Structure</span>
-              <h2 className="chart-title">BTC/USDT Daily Trading View</h2>
-              <p className="chart-description">
-                장기 이동평균과 RSI, MACD를 한 화면에 겹쳐 현재 흐름과 추세 강도를 함께 읽습니다.
-              </p>
-              {currentPrice && (
-                <div className="chart-summary">
-                  <span className="chart-price">
-                    ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  {priceChange !== null && (
-                    <span className={`chart-delta ${priceChange >= 0 ? 'positive' : 'negative'}`}>
-                      {priceChange >= 0 ? '+' : ''}
-                      {priceChange.toFixed(2)}%
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+          <div className="chart-title-strip chart-title-strip-compact">
+            <span className="chart-title-strip-kicker">Trading View</span>
+            <h2 className="chart-title-strip-heading">BTC/USDT Daily Trading View</h2>
+          </div>
 
+          <div className="chart-toolbar-strip">
+            {currentPrice && (
+              <div className="chart-summary chart-summary-compact">
+                <span className="chart-price">
+                  ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                {priceChange !== null && (
+                  <span className={`chart-delta ${priceChange >= 0 ? 'positive' : 'negative'}`}>
+                    {priceChange >= 0 ? '+' : ''}
+                    {priceChange.toFixed(2)}%
+                  </span>
+                )}
+              </div>
+            )}
             <div className="indicator-toggle-group">
               {MA_TOGGLES.map(({ key, label, tone }) => (
                 <label key={key} className="indicator-toggle">

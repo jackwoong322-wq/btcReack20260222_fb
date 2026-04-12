@@ -13,7 +13,7 @@ function toDateString(timestamp) {
 }
 
 export default function BullBoxChart({ cycleNumber = 3 }) {
-  const { lineData, boxes, loading, error, cycleInfo, config } = useBullBoxData(cycleNumber)
+  const { lineData, boxes, loading, error, cycleInfo } = useBullBoxData(cycleNumber)
   const containerRef = useRef(null)
   const chartRef = useRef(null)
 
@@ -171,16 +171,12 @@ export default function BullBoxChart({ cycleNumber = 3 }) {
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
-          <div className="chart-header">
-            <div className="chart-meta">
-              <span className="chart-eyebrow">Bull Box</span>
-              <h2 className="chart-title">
-                Cycle {cycleNumber} ({cycleInfo.startDate}~{cycleInfo.endDate}) Bull Market Box
-              </h2>
-              <p className="chart-description">
-                Drop ≥ {config.DROP_THRESHOLD}% | Break &gt; {config.BREAK_THRESHOLD}% | 400~1450 Days
-              </p>
-            </div>
+          <div className="chart-title-strip">
+            <span className="chart-title-strip-kicker">Bull Box</span>
+            <h2 className="chart-title-strip-heading">Cycle {cycleNumber} Bull Market Box</h2>
+            <p className="chart-title-strip-copy">
+              상승 사이클의 박스 전개와 전체 기간 흐름을 빠르게 읽을 수 있게 압축했습니다.
+            </p>
           </div>
 
           <div ref={containerRef} className="chart-area chart-area-fill" />

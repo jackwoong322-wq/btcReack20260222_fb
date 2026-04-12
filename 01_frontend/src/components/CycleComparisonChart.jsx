@@ -188,14 +188,12 @@ export default function CycleComparisonChart({ onHeaderContent }) {
     <div className="chart-page">
       <div className="chart-container">
         <div className="chart-wrapper">
-          <div className="chart-header">
-            <div className="chart-meta">
-              <span className="chart-eyebrow">Cycle Comparison</span>
-              <h2 className="chart-title">비트코인 사이클 하락률 비교</h2>
-              <p className="chart-description">
-                각 사이클의 고점 이후 낙폭과 회복 흐름을 같은 축에서 겹쳐 유사 구간을 빠르게 읽습니다.
-              </p>
-            </div>
+          <div className="chart-title-strip">
+            <span className="chart-title-strip-kicker">Cycle Comparison</span>
+            <h2 className="chart-title-strip-heading">비트코인 사이클 하락률 비교</h2>
+            <p className="chart-title-strip-copy">
+              각 사이클의 고점 이후 낙폭과 회복 흐름을 같은 축에서 겹쳐 유사 구간을 빠르게 읽습니다.
+            </p>
           </div>
 
           <div ref={containerRef} className="chart-area chart-area-compact" />
