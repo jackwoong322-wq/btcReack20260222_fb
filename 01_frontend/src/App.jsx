@@ -55,22 +55,22 @@ function App() {
   const menuData = useMemo(
     () => ({
       comparison: {
-        title: 'ªÁ¿Ã≈¨ ∫Ò±≥',
+        title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê',
         icon: 'CP',
         type: 'comparison',
       },
       trading: {
-        title: '∆Æ∑π¿Ãµ˘ ∫‰',
+        title: 'Ìä∏Î†àÏù¥Îî© Î∑∞',
         icon: 'TV',
         type: 'trading',
       },
       bear: {
-        title: '«œ∂Ù¿Â (0~400¿œ)',
+        title: 'ÌïòÎùΩÏû• (0~400Ïùº)',
         icon: 'BR',
         cycles: mapApiCyclesToNav(cycleMenu?.bearCycles, 'bear') || FALLBACK_BEAR_CYCLES,
       },
       bull: {
-        title: 'ªÛΩ¬¿Â (400¿œ~)',
+        title: 'ÏÉÅÏäπÏû• (400Ïùº~)',
         icon: 'BL',
         cycles: mapApiCyclesToNav(cycleMenu?.bullCycles, 'bull') || FALLBACK_BULL_CYCLES,
       },
@@ -80,10 +80,10 @@ function App() {
 
   const getSelectedChartInfo = () => {
     if (selectedChart === 'comparison') {
-      return { type: 'comparison', title: 'ªÁ¿Ã≈¨ ∫Ò±≥' }
+      return { type: 'comparison', title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê' }
     }
     if (selectedChart === 'trading') {
-      return { type: 'trading', title: '∆Æ∑π¿Ãµ˘ ∫‰' }
+      return { type: 'trading', title: 'Ìä∏Î†àÏù¥Îî© Î∑∞' }
     }
     for (const section of ['bear', 'bull']) {
       const found = menuData[section].cycles.find((cycle) => cycle.id === selectedChart)
@@ -95,7 +95,7 @@ function App() {
         }
       }
     }
-    return { type: 'comparison', title: 'ªÁ¿Ã≈¨ ∫Ò±≥' }
+    return { type: 'comparison', title: 'ÏÇ¨Ïù¥ÌÅ¥ ÎπÑÍµê' }
   }
 
   const selectedInfo = getSelectedChartInfo()
@@ -128,14 +128,14 @@ function App() {
   return (
     <div className="app-container">
       <a className="skip-link" href="#main-content">
-        ∫ªπÆ¿∏∑Œ πŸ∑Œ∞°±‚
+        Î≥∏Î¨∏ÏúºÎ°ú Î∞îÎ°úÍ∞ÄÍ∏∞
       </a>
 
       <header className="app-header">
         <button
           className="header-btn menu-btn"
           onClick={() => setMenuOpen((open) => !open)}
-          aria-label={menuOpen ? '∏ﬁ¥∫ ¥›±‚' : '∏ﬁ¥∫ ø≠±‚'}
+          aria-label={menuOpen ? 'Î©îÎâ¥ Îã´Í∏∞' : 'Î©îÎâ¥ Ïó¥Í∏∞'}
           aria-expanded={menuOpen}
           aria-controls="sidebar-navigation"
         >
@@ -157,7 +157,7 @@ function App() {
         <button
           type="button"
           className="overlay"
-          aria-label="ªÁ¿ÃµÂπŸ ¥›±‚"
+          aria-label="ÏÇ¨Ïù¥ÎìúÎ∞î Îã´Í∏∞"
           onClick={() => setMenuOpen(false)}
         />
       )}
